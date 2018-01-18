@@ -55,6 +55,12 @@ class Puzzle(object):
             total_dist += tile.get_manhattan_dist(i, j, self.width)
       return total_dist
 
+   def get_manhattan_delta(self, blank, target):
+      old_dist = target.get_manhattan_dist(target.row, target.col, self.width)
+      new_dist = target.get_manhattan_dist(blank.row, blank.col, self.width)
+      print("manhattan_delta:", new_dist - old_dist)
+      return new_dist - old_dist
+
    def find_blank(self):
       blank_tile = None
       for i in range(self.width):
@@ -65,7 +71,7 @@ class Puzzle(object):
                blank_tile.col = j
       return blank_tile
 
-   def is_valid_move(self, blank, move):
+   def get_target(self, blank, move):
       target = Tile(-1, blank.col, blank.row)
       if (move == 'h'):
          target.col += 1
@@ -77,31 +83,17 @@ class Puzzle(object):
          target.col -= 1
 
       if self.in_bounds(target):
-         return True
-
-      return False
+         target.value = self.board[target.row][target.col].value
+         print(target.value)
+         return target
 
    def in_bounds(self, target):
       if (0 <= target.row < self.width) and (0 <= target.col < self.width):
          return True
       return False
 
-   def make_move(self, blank, move):
-      target = Tile(-1, blank.col, blank.row)
-      if (move == 'h'):
-         target.col += 1
-      elif (move == 'j'):
-         target.row -= 1
-      elif (move == 'k'):
-         target.row += 1
-      elif (move == 'l'):
-         target.col -= 1
-
-      self.swap_tiles(target, blank)
-
    def swap_tiles(self, target, blank):
-      value = self.board[target.row][target.col].value
-      self.board[blank.row][blank.col].value = value
+      self.board[blank.row][blank.col].value = target.value
       self.board[target.row][target.col].value = blank.value
 
 def solve_puzzle(tiles):
@@ -198,21 +190,22 @@ def get_fringe_states(puzzle):
    fringe_states = []
 
    for move in puzzle.moves:
-      if puzzle.is_valid_move(blank, move):
+      target = puzzle.get_target(blank, move)
+      if target:
          print(move)
-         next_puzzle = create_next_puzzle(puzzle, blank, move)
+         next_puzzle = create_next_puzzle(puzzle, blank, target, move)
          fringe_states.append(next_puzzle)
 
    return fringe_states
 
-def create_next_puzzle(puzzle, blank, move):
+def create_next_puzzle(puzzle, blank, target, move):
    next_board = copy.deepcopy(puzzle.board)
    next_puzzle = Puzzle(next_board)
-   next_puzzle.make_move(blank, move)
+   manhattan_delta = next_puzzle.get_manhattan_delta(blank, target)
+   next_puzzle.swap_tiles(blank, target)
    next_puzzle.path = puzzle.path + move
    next_puzzle.path_cost = puzzle.path_cost + 1
-   # TODO: calc manhattan dist from prev manhattan_dist
-   next_puzzle.manhattan_dist = next_puzzle.get_manhattan_dist()
+   next_puzzle.manhattan_dist = puzzle.manhattan_dist + manhattan_delta
    next_puzzle.set_combined_cost()
    next_puzzle.set_tuple_board()
 
@@ -230,7 +223,7 @@ def main():
    # tiles = [8, 5, 4, 7, 0, 6, 2, 1, 3]
 
    # answer: 31
-   # tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
+   tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
 
    # answer: 36
    tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
