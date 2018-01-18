@@ -122,7 +122,7 @@ def solve_puzzle(tiles):
 
    # add inital puzzle state to frontier
    frontier_q.put(init_puzzle)
-   frontier_set.add((init_puzzle.combined_cost, init_puzzle.tuple_board))
+   frontier_set.add(init_puzzle.tuple_board)
 
    # while there are still states in the frontier
    while not frontier_q.empty():
@@ -138,7 +138,7 @@ def solve_puzzle(tiles):
       for state in fringe_states:
          # check that the current state has not already been explored
          if ((not state.tuple_board in explored)
-            and (not (state.combined_cost, state.tuple_board) in frontier_set)):
+            and (not state.tuple_board in frontier_set)):
             print()
             test_output(state)
 
@@ -150,7 +150,7 @@ def solve_puzzle(tiles):
                #exit
 
             frontier_q.put(state)
-            frontier_set.add((state.combined_cost, state.tuple_board))
+            frontier_set.add(state.tuple_board)
 
             #frontier_q.put((state.manhattan_dist, state))
             # if a node w/ the same position as the successor is in the open
@@ -221,7 +221,7 @@ def create_next_puzzle(puzzle, blank, move):
 def main():
    # test tile lists
    # answer: 6
-   tiles = [3, 2, 1, 0]
+   # tiles = [3, 2, 1, 0]
 
    # answer: 20
    # tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
@@ -233,7 +233,7 @@ def main():
    # tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
 
    # answer: 36
-   # tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
+   tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
 
    # answer: 40
    # tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
