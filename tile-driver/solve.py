@@ -16,33 +16,30 @@ class Tile(object):
 class Puzzle(object):
    def __init__(self, board):
       self.moves = ['h', 'j', 'k', 'l']
-      self.width = len(board)
+      self.width = int(len(board) ** (0.5))
       self.path_cost = 0
       self.path = ''
       self.manhattan_dist = 0
       self.combined_cost = self.path_cost + self.manhattan_dist
       self.board = board
       self.blank_tile = Tile(0, 0, 0)
+      self.board_len = len(board)
 
    def __lt__(self, other):
       return self.combined_cost < other.combined_cost
 
    def set_tuple_board(self):
-      tuple_board = []
-      for i in range(self.width):
-         for j in range(self.width):
-            tuple_board.append(self.board[i][j])
-
-      self.tuple_board = tuple(tuple_board)
+      self.tuple_board = tuple(self.board)
 
    def set_combined_cost(self):
       self.combined_cost = self.path_cost + self.manhattan_dist
 
    def get_manhattan_dist(self):
       total_dist = 0
-      for i in range(self.width):
-         for j in range(self.width):
-            total_dist += self.get_tile_manhattan_dist(self.board[i][j], i, j)
+      for i in range(self.board_len):
+         row = int(i / self.width)
+         col = i % self.width
+         total_dist += self.get_tile_manhattan_dist(self.board[i], row, col)
       return total_dist
 
    def get_manhattan_delta(self, target):
@@ -62,10 +59,11 @@ class Puzzle(object):
 
    def find_blank(self):
       blank_tile = None
-      for i in range(self.width):
-         for j in range(self.width):
-            if self.board[i][j] == 0:
-               blank_tile = Tile(self.board[i][j], i, j)
+      for i in range(self.board_len):
+         if self.board[i] == 0:
+            row = int(i / self.width)
+            col = i % self.width
+            blank_tile = Tile(self.board[i], row, col)
       self.blank_tile = blank_tile
 
    def get_target(self, move):
@@ -81,7 +79,10 @@ class Puzzle(object):
          target.col -= 1
 
       if self.in_bounds(target):
-         target.value = self.board[target.row][target.col]
+         print("width:", self.width)
+         target_index = target.row * self.width + target.col
+         print("target_index:", target_index)
+         target.value = self.board[target_index]
          return target
 
    def in_bounds(self, target):
@@ -91,8 +92,10 @@ class Puzzle(object):
 
    def swap_tiles(self, target):
       blank = self.blank_tile
-      self.board[blank.row][blank.col] = target.value
-      self.board[target.row][target.col] = blank.value
+      target_index = target.row * self.width + target.col
+      blank_index = blank.row * self.width + blank.col
+      self.board[blank_index] = target.value
+      self.board[target_index] = blank.value
       self.blank_tile.row = target.row
       self.blank_tile.col = target.col
 
@@ -146,12 +149,7 @@ def solve_puzzle(tiles):
 
 def test_output(puzzle):
    # test: print out all tile values in the puzzle
-   for i in range(puzzle.width):
-      print('[', end='')
-      for j in range(puzzle.width):
-         print(puzzle.board[i][j], end=' ')
-         #print(puzzle.board[i][j].value, " (", puzzle.board[i][j].row, ", ", puzzle.board[i][j].col, ")", sep="", end=' ')
-      print(']')
+   print(puzzle.board)
    # test: print out the manhattan_dist for init puzzle
    print("man dist:", puzzle.manhattan_dist)
    print("path cost:", puzzle.path_cost)
@@ -159,16 +157,10 @@ def test_output(puzzle):
 
 def print_board(puzzle):
    # test: print out all tile values in the puzzle
-   for i in range(puzzle.width):
-      print('[', end='')
-      for j in range(puzzle.width):
-         print(puzzle.board[i][j], end=' ')
-         #print(puzzle.board[i][j].value, " (", puzzle.board[i][j].row, ", ", puzzle.board[i][j].col, ")", sep="", end=' ')
-      print(']')
+   print(puzzle.board)
 
 def create_init_puzzle(tiles, width):
-   board = build_board(tiles, width)
-   init_puzzle = Puzzle(board)
+   init_puzzle = Puzzle(tiles)
 
    init_puzzle.find_blank()
    init_puzzle.manhattan_dist = init_puzzle.get_manhattan_dist()
@@ -229,6 +221,7 @@ def create_next_puzzle(puzzle, target, move):
    manhattan_delta = next_puzzle.get_manhattan_delta(target)
    print("delta:", manhattan_delta)
    next_puzzle.swap_tiles(target)
+   next_puzzle.set_tuple_board()
    # TEST PRINT
    print()
    print("NEXT_PUZZLE:")
@@ -240,14 +233,13 @@ def create_next_puzzle(puzzle, target, move):
    next_puzzle.path_cost = puzzle.path_cost + 1
    next_puzzle.manhattan_dist = puzzle.manhattan_dist + manhattan_delta
    next_puzzle.set_combined_cost()
-   next_puzzle.set_tuple_board()
 
    return next_puzzle
 
 def main():
    # test tile lists
    # answer: 6
-   # tiles = [3, 2, 1, 0]
+   tiles = [3, 2, 1, 0]
 
    # answer: 20
    # tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
@@ -259,7 +251,7 @@ def main():
    # tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
 
    # answer: 36
-   tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
+   # tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
 
    # answer: 40
    # tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
