@@ -103,6 +103,21 @@ class Puzzle(object):
       self.blank_tile.col = target.col
 
 
+def add_to_set(the_set, puzzle):
+   threshold_width = 4
+   if (puzzle.width < threshold_width):
+      the_set.add((puzzle.combined_cost, puzzle.tuple_board))
+   else:
+      the_set.add(puzzle.tuple_board)
+   return the_set
+
+def check_in_set(the_set, item):
+   threshold_width = 4
+   if (item.width < threshold_width):
+      return (item.combined_cost, item.tuple_board) in the_set
+   else:
+      return item.tuple_board in the_set
+
 def solve_puzzle(tiles):
    # set up inital puzzle state
    sqr_root_exp = 0.5
@@ -117,7 +132,7 @@ def solve_puzzle(tiles):
 
    # add inital puzzle state to frontier
    frontier_q.put(init_puzzle)
-   frontier_set.add(init_puzzle.tuple_board)
+   frontier_set = add_to_set(frontier_set, init_puzzle)
 
    # while there are still states in the frontier
    while not frontier_q.empty():
@@ -131,7 +146,7 @@ def solve_puzzle(tiles):
       for state in fringe_states:
          # check that the current state has not already been explored
          if ((not state.tuple_board in explored)
-            and (not state.tuple_board in frontier_set)):
+            and not check_in_set(frontier_set, state)):
 
             # if the successor is the goal, stop
             if state.manhattan_dist == 0:
@@ -142,7 +157,7 @@ def solve_puzzle(tiles):
                #exit
 
             frontier_q.put(state)
-            frontier_set.add(state.tuple_board)
+            frontier_set = add_to_set(frontier_set, state)
 
       # push parent on the closed list
       explored.add(parent.tuple_board)
@@ -150,11 +165,20 @@ def solve_puzzle(tiles):
 
 def test_output(puzzle):
    # test: print out all tile values in the puzzle
-   print(puzzle.board)
+   print('[')
+   for i in range(puzzle.width):
+      print('[', end='')
+      for j in range(puzzle.width):
+         index = i * puzzle.width + j
+         print(puzzle.board[index], end=' ')
+         #print(puzzle.board[i][j].value, " (", puzzle.board[i][j].row, ", ", puzzle.board[i][j].col, ")", sep="", end=' ')
+      print(']')
+   print(']')
+
    # test: print out the manhattan_dist for init puzzle
-   print("man dist:", puzzle.manhattan_dist)
-   print("path cost:", puzzle.path_cost)
-   print("path:", puzzle.path)
+   # print("man dist:", puzzle.manhattan_dist)
+   # print("path cost:", puzzle.path_cost)
+   # print("path:", puzzle.path)
 
 
 def print_board(puzzle):
@@ -215,7 +239,7 @@ def create_next_puzzle(puzzle, target, move):
    return next_puzzle
 
 
-# def main():
+def main():
    # test tile lists
    # answer: 6
    # tiles = [3, 2, 1, 0]
@@ -238,9 +262,9 @@ def create_next_puzzle(puzzle, target, move):
    # soln = solve_puzzle(tiles)
    # print("cost:", len(soln))
    # print("soln:", soln)
+   test_main()
 
-
-def main():
+def test_main():
    # test tile lists
    # answer: 6
    print("TEST 1:")
