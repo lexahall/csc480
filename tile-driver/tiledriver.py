@@ -6,7 +6,7 @@
 
 import queue
 import copy
-
+import time
 
 class Tile(object):
    def __init__(self, value, row, col):
@@ -135,6 +135,8 @@ def solve_puzzle(tiles):
 
             # if the successor is the goal, stop
             if state.manhattan_dist == 0:
+               # if len(state.path) == 22:
+               #   return (state.path[0:20])
                return(state.path)
                #calculate_soln()
                #exit
@@ -213,10 +215,10 @@ def create_next_puzzle(puzzle, target, move):
    return next_puzzle
 
 
-def main():
+# def main():
    # test tile lists
    # answer: 6
-   tiles = [3, 2, 1, 0]
+   # tiles = [3, 2, 1, 0]
 
    # answer: 20
    # tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
@@ -233,9 +235,85 @@ def main():
    # answer: 40
    # tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
 
+   # soln = solve_puzzle(tiles)
+   # print("cost:", len(soln))
+   # print("soln:", soln)
+
+
+def main():
+   # test tile lists
+   # answer: 6
+   print("TEST 1:")
+   tiles = [3, 2, 1, 0]
+   start_time = round(time.clock(), 2)
    soln = solve_puzzle(tiles)
-   print("cost:", len(soln))
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 6)
+   print("actual cost:", len(soln))
    print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
+   # answer: 20
+   print("TEST 2:")
+   tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
+   start_time = round(time.clock(), 2)
+   soln = solve_puzzle(tiles)
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 20)
+   print("actual cost:", len(soln))
+   print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
+   # answer: 28
+   print("TEST 3:")
+   tiles = [8, 5, 4, 7, 0, 6, 2, 1, 3]
+   start_time = round(time.clock(), 2)
+   soln = solve_puzzle(tiles)
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 28)
+   print("actual cost:", len(soln))
+   print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
+   # answer: 31
+   print("TEST 4:")
+   tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
+   start_time = round(time.clock(), 2)
+   soln = solve_puzzle(tiles)
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 31)
+   print("actual cost:", len(soln))
+   print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
+   # answer: 36
+   print("TEST 5:")
+   tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
+   start_time = round(time.clock(), 2)
+   soln = solve_puzzle(tiles)
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 36)
+   print("actual cost:", len(soln))
+   print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
+   # answer: 40
+   print("TEST 6:")
+   tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
+   start_time = round(time.clock(), 2)
+   soln = solve_puzzle(tiles)
+   end_time = round(time.clock(), 2)
+   print("expected cost:", 40)
+   print("actual cost:", len(soln))
+   print("soln:", soln)
+   print("execution time:", end_time - start_time)
+   print()
+
 
 if __name__ == "__main__":
    main()
