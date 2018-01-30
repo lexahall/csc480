@@ -267,6 +267,12 @@ def is_solvable(tiles):
 
 def count_inversions(tiles):
    length = len(tiles)
+   #TODO: combine this with the find_blank_index function
+   for i in range(length):
+      if tiles[i] == 0:
+         del tiles[i]
+         break
+   length = length - 1
    temp = [None] * length
    return merge_sort(tiles, temp, 0, length - 1)
 
@@ -291,12 +297,12 @@ def merge(arr, temp, left, mid, right):
    k = left    # index for resultant merged subarray
 
    while (i <= mid - 1) and (j <= right):
-      if arr[i] == arr[j]:
+      if arr[i] <= arr[j]:
          temp[k] = arr[i]
          i += 1
          k += 1
       else:
-         temp[k] == arr[j]
+         temp[k] = arr[j]
          j += 1
          k += 1
          num_inversions += mid - i
