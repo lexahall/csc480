@@ -335,7 +335,7 @@ def test_is_solvable():
 
 def test_count_inversions():
    print()
-   print("-------------------  IS SOLVABLE  ----------------")
+   print("-------------------  COUNT INVERSIONS  ----------------")
    print("TEST 1:")
    tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8]
    start_time = round(time.clock(), 2)
@@ -386,7 +386,7 @@ def test_count_inversions():
    start_time = round(time.clock(), 2)
    num_inversions = driver.count_inversions(tiles)
    end_time = round(time.clock(), 2)
-   expected = 0 #TODO: calculate this
+   expected = 7
    if (expected == num_inversions):
       print("✔")
    else:
@@ -397,7 +397,7 @@ def test_count_inversions():
    print()
 
    print("TEST 5:")
-   tiles = [1, 2, 3, 4, 5, 6, 8, 7]
+   tiles = [0, 1, 2, 3, 4, 5, 6, 8, 7]
    start_time = round(time.clock(), 2)
    num_inversions = driver.count_inversions(tiles)
    end_time = round(time.clock(), 2)
