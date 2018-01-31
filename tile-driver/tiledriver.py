@@ -1,25 +1,20 @@
-# Name:        Lexa Hall
-# Course:      CSC 480
-# Instructor:  Daniel Kauffman
-# Assignment:  Tile Driver
-# Term:        Winter 2018
-
+import random
 import queue
 import copy
-import time
 
+## TILE -----------------------------------------------------------------------
 class Tile(object):
    def __init__(self, value, row, col):
       self.value = value
       self.row = row
       self.col = col
 
-
+## PUZZLE ---------------------------------------------------------------------
 class Puzzle(object):
-   def __init__(self, board):
+   def __init__(self, board, width):
       self.moves = ['h', 'j', 'k', 'l']
-      sqr_root_exp = 0.5
-      self.width = int(len(board) ** (sqr_root_exp))
+      self.width = width
+      self.num_conflicts = 0
       self.path_cost = 0
       self.path = ''
       self.manhattan_dist = 0
@@ -31,8 +26,8 @@ class Puzzle(object):
    def __lt__(self, other):
       return self.combined_cost < other.combined_cost
 
-   def set_tuple_board(self):
-      self.tuple_board = tuple(self.board)
+   def __hash__(self):
+      return hash(tuple(self.board)) ^ hash(self.path_cost)
 
    def set_combined_cost(self):
       self.combined_cost = self.path_cost + self.manhattan_dist
@@ -64,15 +59,27 @@ class Puzzle(object):
 
    def find_blank(self):
       blank_tile = None
-      for i in range(self.board_len):
-         if self.board[i] == 0:
-            row = int(i / self.width)
-            col = i % self.width
-            blank_tile = Tile(self.board[i], row, col)
+      blank_index = self.find_blank_index()
+
+      row = int(blank_index / self.width)
+      col = blank_index % self.width
+
+      blank_tile = Tile(self.board[blank_index], row, col)
       self.blank_tile = blank_tile
 
+   def find_blank_index(self):
+      blank_index = 0
+      for i in range(self.board_len):
+         if self.board[i] == 0:
+            blank_index = i
+      return blank_index
+
    def get_target(self, move):
+      if self.is_comp_move(move):
+         return None
+
       blank = self.blank_tile
+
       target = Tile(-1, blank.row, blank.col)
       if (move == 'h'):
          target.col += 1
@@ -93,6 +100,23 @@ class Puzzle(object):
          return True
       return False
 
+   def is_comp_move(self, move):
+      if self.path_cost == 0:
+         return False
+
+      prev_move = self.path[self.path_cost - 1]
+
+      if (move == 'h' and prev_move == 'l'):
+         return True
+      elif (move == 'j' and prev_move == 'k'):
+         return True
+      elif (move == 'k' and prev_move == 'j'):
+         return True
+      elif (move == 'l' and prev_move == 'h'):
+         return True
+
+      return False
+
    def swap_tiles(self, target):
       blank = self.blank_tile
       target_index = target.row * self.width + target.col
@@ -103,99 +127,55 @@ class Puzzle(object):
       self.blank_tile.col = target.col
 
 
-def add_to_set(the_set, puzzle):
-   threshold_width = 4
-   if (puzzle.width < threshold_width):
-      the_set.add((puzzle.combined_cost, puzzle.tuple_board))
-   else:
-      the_set.add(puzzle.tuple_board)
-   return the_set
-
-def check_in_set(the_set, item):
-   threshold_width = 4
-   if (item.width < threshold_width):
-      return (item.combined_cost, item.tuple_board) in the_set
-   else:
-      return item.tuple_board in the_set
-
-def solve_puzzle(tiles):
-   # set up inital puzzle state
-   sqr_root_exp = 0.5
-   width = int(len(tiles) ** (sqr_root_exp))
-
-   init_puzzle = create_init_puzzle(tiles, width)
-
-   # initialize frontier and explored
-   frontier_q = queue.PriorityQueue()
-   frontier_set = set()
-   explored = set()
-
-   # add inital puzzle state to frontier
-   frontier_q.put(init_puzzle)
-   frontier_set = add_to_set(frontier_set, init_puzzle)
-
-   # while there are still states in the frontier
-   while not frontier_q.empty():
-      # pop node with the lowest f(n) - node q
-      parent = frontier_q.get()
-
-      # generate all of q's successors and set their parent to q
-      fringe_states = get_fringe_states(parent)
-
-      # for each successor:
-      for state in fringe_states:
-         # check that the current state has not already been explored
-         if ((not state.tuple_board in explored)
-            and not check_in_set(frontier_set, state)):
-
-            # if the successor is the goal, stop
-            if state.manhattan_dist == 0:
-               # if len(state.path) == 22:
-               #   return (state.path[0:20])
-               return(state.path)
-               #calculate_soln()
-               #exit
-
-            frontier_q.put(state)
-            frontier_set = add_to_set(frontier_set, state)
-
-      # push parent on the closed list
-      explored.add(parent.tuple_board)
+## CONFLICT TILES -------------------------------------------------------------
+def conflict_tiles(width):
+   tiles = fill_tiles_in_order(width)
+   #puzzle = Puzzle(tiles, width)
+   #board = anneal(puzzle)[0].board
+   return tiles
 
 
-def test_output(puzzle):
-   # test: print out all tile values in the puzzle
-   print('[')
-   for i in range(puzzle.width):
-      print('[', end='')
-      for j in range(puzzle.width):
-         index = i * puzzle.width + j
-         print(puzzle.board[index], end=' ')
-         #print(puzzle.board[i][j].value, " (", puzzle.board[i][j].row, ", ", puzzle.board[i][j].col, ")", sep="", end=' ')
-      print(']')
-   print(']')
-
-   # test: print out the manhattan_dist for init puzzle
-   # print("man dist:", puzzle.manhattan_dist)
-   # print("path cost:", puzzle.path_cost)
-   # print("path:", puzzle.path)
+def fill_tiles_in_order(width):
+   tiles = []
+   for i in range(width ** 2):
+      tiles.append(i)
+   return tiles
 
 
-def print_board(puzzle):
-   # test: print out all tile values in the puzzle
-   print(puzzle.board)
+# TODO: rewrite for tiledriver
+def anneal(puzzle):
+   old_complexity = find_num_conflicts(puzzle.board, puzzle.width)
+   T = 1.0
+   T_min = 0.00001
+   alpha = 0.9
+   while T > T_min:
+      i = 1
+      while i <= 100:
+         # get all states
+         fringe_states = get_fringe_states(puzzle)
+         next_puzzle = pick_randon_state(fringe_states)
+         next_puzzle = neighbor(board)
+         new_complexity = find_num_conflicts(next_puzzle.board, next_puzzle.width)
+         ap = acceptance_probability(old_complexity, new_complexity, T)
+         if ap > random():
+            board = new_board
+            old_complexity = new_complexity
+         i += 1
+      T = T*alpha
+   return board, old_complexity
+
+# TODO: finish
+def pick_randon_state(fringe_states):
+   return next_puzzle
 
 
-def create_init_puzzle(tiles, width):
-   init_puzzle = Puzzle(tiles)
+def find_num_conflicts(tiles, width):
+   num_conflicts = 0
+   board = build_board(tiles, width)
+   num_conflicts += count_row_conflicts(board, width)
+   num_conflicts += count_col_conflicts(board, width)
 
-   init_puzzle.find_blank()
-   init_puzzle.manhattan_dist = init_puzzle.get_manhattan_dist()
-   init_puzzle.set_combined_cost()
-   init_puzzle.set_tuple_board()
-
-   # test initial board
-   return init_puzzle
+   return num_conflicts
 
 
 def build_board(tiles, width):
@@ -209,6 +189,196 @@ def build_board(tiles, width):
       )
 
    return board
+
+
+def count_row_conflicts(board, width):
+   row = []
+   num_conflicts = 0
+
+   for i in range(width):
+      for j in range(width):
+         value = board[i][j]
+         if (value != 0 and ((value // width) == i)):
+            row.append(board[i][j])
+      if len(row) > 1:
+         num_conflicts += count_conflicts(row)
+      row = []
+
+   return num_conflicts
+
+
+def count_col_conflicts(board, width):
+   col = []
+   num_conflicts = 0
+
+   for j in range(width):
+      for i in range(width):
+         value = board[i][j]
+         if (value != 0 and ((value % width) == j)):
+            col.append(board[i][j])
+      if len(col) > 1:
+         num_conflicts += count_conflicts(col)
+      col = []
+
+   return num_conflicts
+
+
+def count_conflicts(tiles):
+   length = len(tiles)
+
+   if length == 1: # Base Case
+      return 0
+
+   head = tiles[0]
+   for i in range(1, length):
+      if tiles[i] < head:
+         return 1 + count_conflicts(tiles[1:length]) # conflict detected
+
+   return count_conflicts(tiles[1:length]) # no conflict detected
+
+## SHUFFLE TILES --------------------------------------------------------------
+def shuffle_tiles(width):
+   board = hill_climb(width)
+   return board
+
+
+def hill_climb(width):
+   total_hill_climbs = 1000
+   # TODO: fill tiles correctly
+   board = fill_tiles_in_order(width)
+   return board
+
+## SHARED ---------------------------------------------------------------------
+def is_solvable(tiles):
+   sqr_rt = 0.5
+   board_width = len(tiles) ** (sqr_rt)
+   num_inversions = count_inversions(tiles)
+
+   if (board_width % 2 == 0):
+      blank = findBlank(tiles)
+      if (blank.row % 2 == 0) and (num_inversions % 2 != 0):
+         return True
+      if (blank.row % 2 != 0) and (num_inversions % 2 == 0):
+         return True
+   elif (board_width % 2 != 0) and (num_inversions % 2 == 0):
+      return True
+
+   return False
+
+
+def count_inversions(tiles):
+   length = len(tiles)
+   #TODO: combine this with the find_blank_index function
+   for i in range(length):
+      if tiles[i] == 0:
+         del tiles[i]
+         break
+   length = length - 1
+   temp = [None] * length
+   return merge_sort(tiles, temp, 0, length - 1)
+
+
+def merge_sort(arr, temp, left, right):
+   mid = 0
+   num_inversions = 0
+
+   if right > left:
+      mid = (right + left) // 2
+      num_inversions = merge_sort(arr, temp, left, mid)
+      num_inversions += merge_sort(arr, temp, mid + 1, right)
+      num_inversions += merge(arr, temp, left, mid + 1, right)
+
+   return num_inversions
+
+
+def merge(arr, temp, left, mid, right):
+   num_inversions = 0
+   i = left    # index for left subarray
+   j = mid     # index for right subarray
+   k = left    # index for resultant merged subarray
+
+   while (i <= mid - 1) and (j <= right):
+      if arr[i] <= arr[j]:
+         temp[k] = arr[i]
+         i += 1
+         k += 1
+      else:
+         temp[k] = arr[j]
+         j += 1
+         k += 1
+         num_inversions += mid - i
+
+   while (i <= mid - 1):
+      temp[k] = arr[i]
+      i += 1
+      k += 1
+
+   while (j <= right):
+      temp[k] = arr[j]
+      j += 1
+      k += 1
+
+   for i in range(left, right):
+      arr[i] = temp[i]
+
+   return num_inversions
+
+## SOLVE PUZZLE ---------------------------------------------------------------
+def solve_puzzle(tiles):
+   # set up inital puzzle state
+   sqr_root_exp = 0.5
+   width = int(len(tiles) ** (sqr_root_exp))
+
+   init_puzzle = create_init_puzzle(tiles, width)
+   if init_puzzle.manhattan_dist == 0:
+      return ''
+
+   # initialize frontier and explored
+   frontier_q = queue.PriorityQueue()
+   frontier_set = set()
+   explored = set()
+
+   # add inital puzzle state to frontier
+   frontier_q.put(init_puzzle)
+   frontier_set.add(init_puzzle)
+
+   # while there are still states in the frontier
+   while not frontier_q.empty():
+      # pop node with the lowest f(n) - node q
+      parent = frontier_q.get()
+
+      # generate all of q's successors and set their parent to q
+      fringe_states = get_fringe_states(parent)
+
+      # for each successor:
+      for state in fringe_states:
+         # check that the current state has not already been explored
+         if ((not tuple(state.board) in explored)
+            and (not state in frontier_set)):
+
+            # if the successor is the goal, stop
+            if state.manhattan_dist == 0:
+               # if len(state.path) == 22:
+               #   return (state.path[0:20])
+               return(state.path)
+               #calculate_soln()
+               #exit
+
+            frontier_q.put(state)
+            frontier_set.add(state)
+
+      # push parent on the closed list
+      explored.add(tuple(parent.board))
+
+
+def create_init_puzzle(tiles, width):
+   init_puzzle = Puzzle(tiles, width)
+
+   init_puzzle.find_blank()
+   init_puzzle.manhattan_dist = init_puzzle.get_manhattan_dist()
+   init_puzzle.set_combined_cost()
+
+   return init_puzzle
 
 
 def get_fringe_states(puzzle):
@@ -225,119 +395,14 @@ def get_fringe_states(puzzle):
 
 def create_next_puzzle(puzzle, target, move):
    next_board = copy.deepcopy(puzzle.board)
-   next_puzzle = Puzzle(next_board)
+   next_puzzle = Puzzle(next_board, puzzle.width)
    next_puzzle.blank_tile.row = puzzle.blank_tile.row
    next_puzzle.blank_tile.col = puzzle.blank_tile.col
    manhattan_delta = next_puzzle.get_manhattan_delta(target)
    next_puzzle.swap_tiles(target)
-   next_puzzle.set_tuple_board()
    next_puzzle.path = puzzle.path + move
    next_puzzle.path_cost = puzzle.path_cost + 1
    next_puzzle.manhattan_dist = puzzle.manhattan_dist + manhattan_delta
    next_puzzle.set_combined_cost()
 
    return next_puzzle
-
-
-def main():
-   # test tile lists
-   # answer: 6
-   # tiles = [3, 2, 1, 0]
-
-   # answer: 20
-   # tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
-
-   # answer: 28
-   # tiles = [8, 5, 4, 7, 0, 6, 2, 1, 3]
-
-   # answer: 31
-   # tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
-
-   # answer: 36
-   # tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
-
-   # answer: 40
-   # tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
-
-   # soln = solve_puzzle(tiles)
-   # print("cost:", len(soln))
-   # print("soln:", soln)
-   test_main()
-
-def test_main():
-   # test tile lists
-   # answer: 6
-   print("TEST 1:")
-   tiles = [3, 2, 1, 0]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 6)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-   # answer: 20
-   print("TEST 2:")
-   tiles = [7, 1, 8, 6, 3, 4, 0, 5, 2]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 20)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-   # answer: 28
-   print("TEST 3:")
-   tiles = [8, 5, 4, 7, 0, 6, 2, 1, 3]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 28)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-   # answer: 31
-   print("TEST 4:")
-   tiles = [8, 0, 6, 5, 4, 7, 2, 3, 1]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 31)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-   # answer: 36
-   print("TEST 5:")
-   tiles = [5, 1, 3, 7, 9, 6, 4, 11, 13, 8, 14, 2, 12, 10, 15, 0]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 36)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-   # answer: 40
-   print("TEST 6:")
-   tiles = [2, 12, 3, 4, 9, 1, 0, 11, 7, 6, 5, 10, 17, 13, 14, 15, 16, 8, 24, 18, 20, 21, 19, 22, 23]
-   start_time = round(time.clock(), 2)
-   soln = solve_puzzle(tiles)
-   end_time = round(time.clock(), 2)
-   print("expected cost:", 40)
-   print("actual cost:", len(soln))
-   print("soln:", soln)
-   print("execution time:", end_time - start_time)
-   print()
-
-
-if __name__ == "__main__":
-   main()

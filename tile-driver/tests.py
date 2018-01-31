@@ -1,4 +1,4 @@
-import tiledriver2 as driver
+import tiledriver as driver
 import time
 
 def test_solve_puzzle():
