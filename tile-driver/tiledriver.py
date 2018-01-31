@@ -161,7 +161,7 @@ def anneal(puzzle):
             board = new_board
             old_complexity = new_complexity
          i += 1
-      T = T*alpha
+      T = T * alpha
    return board, old_complexity
 
 # TODO: finish
