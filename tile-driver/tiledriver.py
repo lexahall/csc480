@@ -326,48 +326,128 @@ def count_conflicts(tiles):
 
 ## SHUFFLE TILES --------------------------------------------------------------
 def shuffle_tiles(width):
-   board = hill_climb(width)
-   return board
+   #tiles = hill_climb(width)
+   tiles = fill_tiles_in_order(width)
+   return tiles
 
 
 def hill_climb(width):
    total_hill_climbs = 1000
-   # TODO: fill tiles correctly
-   board = fill_tiles_in_order(width)
-   return board
+   hill_climbs = 0
+   tiles = fill_tiles_in_order(width)
+   global_max = create_init_puzzle(tiles, width)
+   global_cost = 0
+   explored = set()
+   explored.add(tuple(global_max.board))
+
+   while(hill_climbs < total_hill_climbs):
+      hill_climbs += 1
+      num_better_states = 1
+      tiles = generate_random_board(width)
+
+      # keep generating a random baord if current board has been explored
+      while(tuple(tiles) in explored):
+         tiles = generate_random_board(width)
+
+      local_max = create_init_puzzle(tiles, width)
+      explored.add(tuple(tiles))
+
+      # find local max
+      while num_better_states:
+         print("in while")
+         num_better_states = 0
+
+         fringe_states = get_fringe_states(local_max)
+
+         # find best next state
+         max_cost = 0
+         max_index = 0
+         index = 0
+
+         for state in fringe_states:
+            print("states")
+            if not tuple(state.board) in explored:
+               if state.manhattan_dist > max_cost:
+                  max_cost = state.manhattan_dist
+                  max_index = index
+
+            index += 1
+
+         fringe_max = fringe_states[max_index]
+
+         # state.manhattan_dist = state.get_manhattan_dist()
+         print()
+         print("local manhattan:", local_max.manhattan_dist)
+         print("fringe manhattan:", fringe_max.manhattan_dist)
+         if fringe_max.manhattan_dist > local_max.manhattan_dist:
+            local_max = fringe_max
+            num_better_states += 1
+            print("better state")
+
+      # update glabal_max as needed
+      print()
+      print("Iteration:", hill_climbs)
+      print("Local max:", local_max.board)
+      print("local manhattan_dist:", local_max.manhattan_dist)
+      print("global max:", global_max.board)
+      print("global manhattan_dist:", global_max.manhattan_dist)
+
+      if (local_max.manhattan_dist > global_max.manhattan_dist):
+         local_cost = len(solve_puzzle(local_max.board))
+         print("Local cost:", local_cost)
+         if local_cost > global_cost:
+            global_max = local_max
+            global_cost = local_cost
+
+   print(global_max.board)
+   print(global_cost)
+   return global_max.board
+
+
+def generate_random_board(width):
+   tiles = []
+   solvable = False
+
+   while not solvable:
+      tiles = fill_tiles_in_order(width)
+      random.shuffle(tiles)
+      solvable = is_solvable(copy.deepcopy(tiles))
+
+   return tiles
 
 ## SHARED ---------------------------------------------------------------------
+def fill_tiles_in_order(width):
+   tiles = []
+   for i in range(width ** 2):
+      tiles.append(i)
+   return tiles
+
+
 def is_solvable(tiles):
    length = len(tiles)
    sqr_rt = 0.5
-   board_width = length ** (sqr_rt)
-   # TODO: add index to blank
-   (blank, blank_index) = find_blank_tile(tiles, board_width, length)
-   num_inversions = count_inversions(tiles, length, blank_index)
-
-   if num_inversions == 0:
-      return True
+   board_width = int(length ** (sqr_rt))
+   blank = find_blank_tile(tiles, board_width, length)
+   num_inversions = count_inversions(tiles, length, blank.index)
 
    if (board_width % 2 == 0):
-      if (blank.row % 2 == 0) and (num_inversions % 2 != 0):
-         return True
-      if (blank.row % 2 != 0) and (num_inversions % 2 == 0):
-         return True
-   elif (board_width % 2 != 0) and (num_inversions % 2 == 0):
-      return True
+      if (blank.row % 2 == 0):
+         return num_inversions % 2 == 0
+      if (blank.row % 2 != 0):
+         return num_inversions % 2 != 0
+   elif (board_width % 2 != 0):
+      return num_inversions % 2 == 0
 
-   return False
-
-def count_inversions_simple(tiles, length, blank_index):
-   del tiles[blank_index]
-   length = length - 1
-   num_inversions = 0
-   for i in range(length - 1):
-      for j in range(i + 1, length):
-         if (tiles[i] > tiles[j]):
-            num_inversions += 1
-
-   return num_inversions
+# def count_inversions_simple(tiles, length, blank_index):
+#    del tiles[blank_index]
+#    length = length - 1
+#    num_inversions = 0
+#    for i in range(length - 1):
+#       for j in range(i + 1, length):
+#          if (tiles[i] > tiles[j]):
+#             num_inversions += 1
+#
+#    return num_inversions
 
 def count_inversions(tiles, length, blank_index):
    del tiles[blank_index]
