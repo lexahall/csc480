@@ -72,6 +72,7 @@ class Puzzle(object):
       for i in range(self.board_len):
          if self.board[i] == 0:
             blank_index = i
+            break
       return blank_index
 
    def get_target(self, move):
@@ -250,12 +251,17 @@ def hill_climb(width):
 
 ## SHARED ---------------------------------------------------------------------
 def is_solvable(tiles):
+   length = len(tiles)
    sqr_rt = 0.5
-   board_width = len(tiles) ** (sqr_rt)
-   num_inversions = count_inversions(tiles)
+   board_width = length ** (sqr_rt)
+   # TODO: add index to blank
+   (blank, blank_index) = find_blank_tile(tiles, board_width, length)
+   num_inversions = count_inversions(tiles, length, blank_index)
+
+   if num_inversions == 0:
+      return True
 
    if (board_width % 2 == 0):
-      blank = findBlank(tiles)
       if (blank.row % 2 == 0) and (num_inversions % 2 != 0):
          return True
       if (blank.row % 2 != 0) and (num_inversions % 2 == 0):
@@ -265,17 +271,41 @@ def is_solvable(tiles):
 
    return False
 
+def count_inversions_simple(tiles, length, blank_index):
+   del tiles[blank_index]
+   length = length - 1
+   num_inversions = 0
+   for i in range(length - 1):
+      for j in range(i + 1, length):
+         if (tiles[i] > tiles[j]):
+            num_inversions += 1
 
-def count_inversions(tiles):
-   length = len(tiles)
-   #TODO: combine this with the find_blank_index function
-   for i in range(length):
-      if tiles[i] == 0:
-         del tiles[i]
-         break
+   return num_inversions
+
+def count_inversions(tiles, length, blank_index):
+   del tiles[blank_index]
    length = length - 1
    temp = [None] * length
    return merge_sort(tiles, temp, 0, length - 1)
+
+
+def find_blank_tile(tiles, width, length):
+   blank_tile = None
+   blank_index = find_blank_tile_index(tiles, length)
+
+   row = int(blank_index / width)
+   col = blank_index % width
+
+   blank_tile = Tile(tiles[blank_index], row, col)
+   return blank_tile, blank_index
+
+
+def find_blank_tile_index(tiles, length):
+   blank_index = 0
+   for i in range(length):
+      if tiles[i] == 0:
+         blank_index = i
+   return blank_index
 
 
 def merge_sort(arr, temp, left, right):
@@ -318,7 +348,7 @@ def merge(arr, temp, left, mid, right):
       j += 1
       k += 1
 
-   for i in range(left, right):
+   for i in range(left, right + 1):
       arr[i] = temp[i]
 
    return num_inversions
