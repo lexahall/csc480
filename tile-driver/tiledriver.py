@@ -475,15 +475,14 @@ def generate_random_board(width):
 ## SHARED ---------------------------------------------------------------------
 def fill_tiles_in_order(width):
    tiles = []
-   for i in range(width ** 2):
+   for i in range(int(pow(width, 2))):
       tiles.append(i)
    return tiles
 
 
 def is_solvable(tiles):
    length = len(tiles)
-   sqr_rt = 0.5
-   board_width = int(length ** (sqr_rt))
+   board_width = int(math.sqrt(length))
    blank = find_blank_tile(tiles, board_width, length)
    num_inversions = count_inversions(tiles, length, blank.index)
 
@@ -580,8 +579,7 @@ def merge(arr, temp, left, mid, right):
 ## SOLVE PUZZLE ---------------------------------------------------------------
 def solve_puzzle(tiles):
    # set up inital puzzle state
-   sqr_root_exp = 0.5
-   width = int(len(tiles) ** (sqr_root_exp))
+   width = int(math.sqrt(len(tiles)))
 
    init_puzzle = create_init_puzzle(tiles, width)
    if init_puzzle.manhattan_dist == 0:
