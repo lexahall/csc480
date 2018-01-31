@@ -74,7 +74,7 @@ class Puzzle(object):
       row = int(blank_index / self.width)
       col = blank_index % self.width
 
-      blank_tile = Tile(self.board[blank_index], row, col)
+      blank_tile = Tile(self.board[blank_index], row, col, blank_index)
       self.blank_tile = blank_tile
 
    def find_blank_index(self):
@@ -140,20 +140,88 @@ class Puzzle(object):
 
 ## CONFLICT TILES -------------------------------------------------------------
 def conflict_tiles(width):
-   tiles = fill_tiles_in_order(width)
+   # tiles = fill_tiles_in_order(width)
    #puzzle = Puzzle(tiles, width)
-   #board = anneal(puzzle)[0].board
+   #tiles = anneal(puzzle)
+   tiles = conflict_hill_climb(width)
    return tiles
 
+def conflict_hill_climb(width):
+   total_hill_climbs = 1000
+   hill_climbs = 0
+   tiles = fill_tiles_in_order(width)
+   global_max = create_init_puzzle(tiles, width)
+   global_max.num_conflicts = find_num_conflicts(global_max.board, width)
+   global_cost = 0
+   explored = set()
+   explored.add(tuple(global_max.board))
 
-def fill_tiles_in_order(width):
-   tiles = []
-   for i in range(width ** 2):
-      tiles.append(i)
-   return tiles
+   while(hill_climbs < total_hill_climbs):
+      hill_climbs += 1
+      num_better_states = 1
+      tiles = generate_random_board(width)
+
+      # keep generating a random baord if current board has been explored
+      while(tuple(tiles) in explored):
+         tiles = generate_random_board(width)
+
+      local_max = create_init_puzzle(tiles, width)
+      local_max.num_conflicts = find_num_conflicts(local_max.board, width)
+      explored.add(tuple(tiles))
+
+      # find local max
+      while num_better_states:
+         #print("in while")
+         num_better_states = 0
+
+         fringe_states = get_fringe_states(local_max)
+
+         # find best next state
+         max_cost = 0
+         max_index = 0
+         index = 0
+
+         for state in fringe_states:
+            #print("states")
+            if not tuple(state.board) in explored:
+               if state.num_conflicts > max_cost:
+                  max_cost = state.num_conflicts
+                  max_index = index
+
+            index += 1
+
+         fringe_max = fringe_states[max_index]
+
+         # state.manhattan_dist = state.get_manhattan_dist()
+         #print()
+         #print("local conflicts:", local_max.num_conflicts)
+         #print("fringe conflicts:", fringe_max.num_conflicts)
+         if fringe_max.num_conflicts > local_max.num_conflicts:
+            local_max = fringe_max
+            num_better_states += 1
+            #print("better state")
+
+      # update glabal_max as needed
+      #print()
+      #print("Iteration:", hill_climbs)
+      #print("Local max:", local_max.board)
+      #print("local conflicts:", local_max.num_conflicts)
+      #print("global max:", global_max.board)
+      #print("global conflicts:", global_max.num_conflicts)
+
+      if (local_max.num_conflicts > global_max.num_conflicts):
+         local_cost = len(solve_puzzle(local_max.board))
+         #print("Local cost:", local_cost)
+         if local_cost > global_cost:
+            global_max = local_max
+            global_cost = local_cost
+
+   #print(global_max.board)
+   #print(global_cost)
+   return global_max.board
 
 
-# TODO: rewrite for tiledriver
+
 def anneal(puzzle):
    old_complexity = find_num_conflicts(puzzle.board, puzzle.width)
    T = 1.0
@@ -161,23 +229,32 @@ def anneal(puzzle):
    alpha = 0.9
    while T > T_min:
       i = 1
-      while i <= 100:
-         # get all states
+      num_iterations = 100
+      while i <= num_iterations:
+         # get all fringe states
          fringe_states = get_fringe_states(puzzle)
          next_puzzle = pick_randon_state(fringe_states)
-         next_puzzle = neighbor(board)
-         new_complexity = find_num_conflicts(next_puzzle.board, next_puzzle.width)
+         new_complexity = find_num_conflicts(next_puzzle.board,
+                                             next_puzzle.width)
          ap = acceptance_probability(old_complexity, new_complexity, T)
-         if ap > random():
-            board = new_board
+         if ap > random.random():
+            puzzle = next_puzzle
             old_complexity = new_complexity
          i += 1
       T = T * alpha
-   return board, old_complexity
+   return puzzle.board
 
-# TODO: finish
+
+def acceptance_probability(old_complexity, new_complexity, T):
+   ap = math.exp((old_complexity - new_complexity) / T)
+   if(old_complexity > new_complexity):
+      ap = 1
+   return ap
+
+
 def pick_randon_state(fringe_states):
-   return next_puzzle
+   random.shuffle(fringe_states)
+   return fringe_states[0]
 
 
 def find_num_conflicts(tiles, width):
@@ -303,11 +380,11 @@ def find_blank_tile(tiles, width, length):
    blank_tile = None
    blank_index = find_blank_tile_index(tiles, length)
 
-   row = int(blank_index / width)
+   row = blank_index // width
    col = blank_index % width
 
-   blank_tile = Tile(tiles[blank_index], row, col)
-   return blank_tile, blank_index
+   blank_tile = Tile(tiles[blank_index], row, col, blank_index)
+   return blank_tile
 
 
 def find_blank_tile_index(tiles, length):
