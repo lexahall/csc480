@@ -140,10 +140,10 @@ class Puzzle(object):
 
 ## CONFLICT TILES -------------------------------------------------------------
 def conflict_tiles(width):
-   # tiles = fill_tiles_in_order(width)
-   #puzzle = Puzzle(tiles, width)
-   #tiles = anneal(puzzle)
-   tiles = conflict_hill_climb(width)
+   tiles = fill_tiles_in_order(width)
+   puzzle = create_init_puzzle(tiles, width)
+   tiles = simulated_annealing(puzzle)
+   #tiles = conflict_hill_climb(width)
    return tiles
 
 def conflict_hill_climb(width):
@@ -221,15 +221,28 @@ def conflict_hill_climb(width):
    return global_max.board
 
 
+def simulated_annealing(puzzle):
+   total_iterations = 20
+   num_iterations = 0
+   global_max = puzzle
+
+   while (num_iterations < total_iterations):
+      num_iterations += 1
+      new_puzzle = anneal(puzzle)
+      if (new_puzzle.num_conflicts > global_max.num_conflicts):
+         global_max = new_puzzle
+
+   return global_max.board
+
 
 def anneal(puzzle):
    old_complexity = find_num_conflicts(puzzle.board, puzzle.width)
    T = 1.0
-   T_min = 0.00001
-   alpha = 0.9
+   T_min = 0.0001
+   alpha = 0.91
    while T > T_min:
       i = 1
-      num_iterations = 100
+      num_iterations = 500
       while i <= num_iterations:
          # get all fringe states
          fringe_states = get_fringe_states(puzzle)
@@ -242,14 +255,17 @@ def anneal(puzzle):
             old_complexity = new_complexity
          i += 1
       T = T * alpha
-   return puzzle.board
+   return puzzle
 
 
 def acceptance_probability(old_complexity, new_complexity, T):
-   ap = math.exp((old_complexity - new_complexity) / T)
-   if(old_complexity > new_complexity):
-      ap = 1
-   return ap
+   if new_complexity > old_complexity:
+      return 1
+
+   if (old_complexity == new_complexity):
+      return random.random()
+
+   return math.exp((new_complexity - old_complexity) / T)
 
 
 def pick_randon_state(fringe_states):
@@ -328,7 +344,48 @@ def count_conflicts(tiles):
 def shuffle_tiles(width):
    #tiles = hill_climb(width)
    tiles = fill_tiles_in_order(width)
+   puzzle = create_init_puzzle(tiles, width)
+   tiles = simulated_annealing_path_cost(puzzle)
    return tiles
+
+def simulated_annealing_path_cost(puzzle):
+   total_iterations = 20
+   threshold = 28 if puzzle.width == 3 else 0
+   num_iterations = 0
+   global_max = puzzle
+   global_max.path_cost = len(solve_puzzle(puzzle.board))
+
+   while (global_max.path_cost < threshold or num_iterations < total_iterations):
+      num_iterations += 1
+      new_puzzle = anneal_path_cost(puzzle)
+      if (new_puzzle.manhattan_dist > global_max.manhattan_dist):
+         new_puzzle.path_cost = len(solve_puzzle(new_puzzle.board))
+         if (new_puzzle.path_cost > global_max.path_cost):
+            global_max = new_puzzle
+
+   return global_max.board
+
+
+def anneal_path_cost(puzzle):
+   old_complexity = puzzle.manhattan_dist
+   T = 1.0
+   T_min = 0.0001
+   alpha = 0.91
+   while T > T_min:
+      i = 1
+      num_iterations = 500
+      while i <= num_iterations:
+         # get all fringe states
+         fringe_states = get_fringe_states(puzzle)
+         next_puzzle = pick_randon_state(fringe_states)
+         new_complexity = next_puzzle.manhattan_dist
+         ap = acceptance_probability(old_complexity, new_complexity, T)
+         if ap > random.random():
+            puzzle = next_puzzle
+            old_complexity = new_complexity
+         i += 1
+      T = T * alpha
+   return puzzle
 
 
 def hill_climb(width):

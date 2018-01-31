@@ -56,25 +56,25 @@ def test_conflict_tiles():
    width = 2
    run_conflict_tiles(minimum_cost, width)
 
-   # print("TEST 2: width = 3")
-   # minimum_cost = 4
-   # width = 3
-   # run_conflict_tiles(minimum_cost, width)
+   print("TEST 2: width = 3")
+   minimum_cost = 4
+   width = 3
+   run_conflict_tiles(minimum_cost, width)
 
-   # print("TEST 3: width = 4")
-   # minimum_cost = 100
-   # width = 4
-   # run_conflict_tiles(minimum_cost, width)
+   print("TEST 3: width = 4")
+   minimum_cost = 100
+   width = 4
+   run_conflict_tiles(minimum_cost, width)
 
-   # print("TEST 4: width = 5")
-   # minimum_cost = 100
-   # width = 5
-   # run_conflict_tiles(minimum_cost, width)
+   print("TEST 4: width = 5")
+   minimum_cost = 100
+   width = 5
+   run_conflict_tiles(minimum_cost, width)
 
-   # print("TEST 5: width = 6")
-   # minimum_cost = 100
-   # width = 6
-   # run_conflict_tiles(minimum_cost, width)
+   print("TEST 5: width = 6")
+   minimum_cost = 100
+   width = 6
+   run_conflict_tiles(minimum_cost, width)
 
 
 def run_conflict_tiles(expected, width):
@@ -125,20 +125,14 @@ def test_shuffle_tiles():
    print()
    print("------------------- SHUFFLE TILES ----------------")
    print("TEST 1: width = 2")
-   minimum_cost = 100
+   minimum_cost = 6
    width = 2
    run_shuffle_tiles(minimum_cost, width)
 
    print("TEST 2: width = 3")
-   minimum_cost = 30
+   minimum_cost = 28
    width = 3
    run_shuffle_tiles(minimum_cost, width)
-
-   print("TEST 3: width = 4")
-   minimum_cost = 100
-   width = 4
-   run_shuffle_tiles(minimum_cost, width)
-
 
 def run_shuffle_tiles(expected, width):
    start_time = round(time.clock(), 2)
@@ -364,8 +358,8 @@ def run_generate_random_board(width):
 
 def main():
    # DELIVERABLES:
-   test_solve_puzzle()
-   #test_conflict_tiles()
+   # test_solve_puzzle()
+   test_conflict_tiles()
    # soln = driver.solve_puzzle([0, 2, 1, 3])
    # print(soln)
    # test_shuffle_tiles()
