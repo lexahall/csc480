@@ -555,11 +555,7 @@ def solve_puzzle(tiles):
 
             # if the successor is the goal, stop
             if state.manhattan_dist == 0:
-               # if len(state.path) == 22:
-               #   return (state.path[0:20])
                return(state.path)
-               #calculate_soln()
-               #exit
 
             frontier_q.put(state)
             frontier_set.add(state)
