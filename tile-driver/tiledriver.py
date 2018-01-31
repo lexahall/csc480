@@ -26,7 +26,9 @@ class Puzzle(object):
       self.path_cost = 0
       self.path = ''
       self.manhattan_dist = 0
-      self.combined_cost = self.path_cost + self.manhattan_dist
+      self.combined_cost = (self.path_cost +
+                            self.manhattan_dist +
+                            self.num_conflicts)
       self.board = board
       self.blank_tile = Tile(0, 0, 0)
       self.board_len = len(board)
@@ -414,6 +416,7 @@ def create_init_puzzle(tiles, width):
 
    init_puzzle.find_blank()
    init_puzzle.manhattan_dist = init_puzzle.get_manhattan_dist()
+   init_puzzle.num_conflicts = find_num_conflicts(tiles, width)
    init_puzzle.set_combined_cost()
 
    return init_puzzle
@@ -441,6 +444,10 @@ def create_next_puzzle(puzzle, target, move):
    next_puzzle.path = puzzle.path + move
    next_puzzle.path_cost = puzzle.path_cost + 1
    next_puzzle.manhattan_dist = puzzle.manhattan_dist + manhattan_delta
+   next_puzzle.num_conflicts = find_num_conflicts(
+                                                   next_puzzle.board,
+                                                   puzzle.width
+                                                 )
    next_puzzle.set_combined_cost()
 
    return next_puzzle
