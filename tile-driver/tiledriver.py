@@ -1,13 +1,21 @@
+# Name:        Lexa Hall
+# Course:      CSC 480
+# Instructor:  Daniel Kauffman
+# Assignment:  Tile Driver
+# Term:        Winter 2018
+
+import math
 import random
 import queue
 import copy
 
 ## TILE -----------------------------------------------------------------------
 class Tile(object):
-   def __init__(self, value, row, col):
+   def __init__(self, value, row, col, index = 0):
       self.value = value
       self.row = row
       self.col = col
+      self.index = index
 
 ## PUZZLE ---------------------------------------------------------------------
 class Puzzle(object):
