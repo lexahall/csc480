@@ -51,10 +51,10 @@ def run_solve_puzzle(expected, tiles):
 def test_conflict_tiles():
    print()
    print("------------------- CONFLICT TILES ----------------")
-   # print("TEST 1: width = 2")
-   # minimum_cost = 0
-   # width = 2
-   # run_conflict_tiles(minimum_cost, width)
+   print("TEST 1: width = 2")
+   minimum_cost = 0
+   width = 2
+   run_conflict_tiles(minimum_cost, width)
 
    print("TEST 2: width = 3")
    minimum_cost = 4
