@@ -140,85 +140,85 @@ class Puzzle(object):
 
 ## CONFLICT TILES -------------------------------------------------------------
 def conflict_tiles(width):
-   tiles = fill_tiles_in_order(width)
-   puzzle = create_init_puzzle(tiles, width)
-   tiles = simulated_annealing(puzzle)
-   #tiles = conflict_hill_climb(width)
+   #tiles = fill_tiles_in_order(width)
+   #puzzle = create_init_puzzle(tiles, width)
+   #tiles = simulated_annealing(puzzle)
+   tiles = conflict_hill_climb(width)
    return tiles
 
 def conflict_hill_climb(width):
-   total_hill_climbs = 1000
+   total_hill_climbs = 100000
    hill_climbs = 0
    tiles = fill_tiles_in_order(width)
+
+   # initialize global max
    global_max = create_init_puzzle(tiles, width)
-   global_max.num_conflicts = find_num_conflicts(global_max.board, width)
    global_cost = 0
+
+   # initialize explored set
    explored = set()
    explored.add(tuple(global_max.board))
 
    while(hill_climbs < total_hill_climbs):
       hill_climbs += 1
-      num_better_states = 1
+      local_max = single_hill_climb(width, explored)
+      # update glabal_max as needed
+      if (local_max.num_conflicts > global_max.num_conflicts):
+         global_max = local_max
+
+   return global_max.board
+
+
+def single_hill_climb(width, explored):
+   plateau_count = 0
+   tiles = generate_random_board(width)
+
+   # keep generating a random baord if current board has been explored
+   rand_iterations = 0
+   max_rand_iterations = 10
+   while((tuple(tiles) in explored) and rand_iterations < max_rand_iterations):
+      rand_iterations += 1
       tiles = generate_random_board(width)
 
-      # keep generating a random baord if current board has been explored
-      while(tuple(tiles) in explored):
-         tiles = generate_random_board(width)
+   local_max = create_init_puzzle(tiles, width)
+   explored.add(tuple(tiles))
 
-      local_max = create_init_puzzle(tiles, width)
-      local_max.num_conflicts = find_num_conflicts(local_max.board, width)
-      explored.add(tuple(tiles))
+   # find local max
+   while plateau_count < 3:
+      num_better_states = 0
 
-      # find local max
-      while num_better_states:
-         #print("in while")
-         num_better_states = 0
+      fringe_states = get_fringe_states(local_max)
 
-         fringe_states = get_fringe_states(local_max)
+      # find best next state
+      fringe_max = find_max_fringe_state(fringe_states, explored)
 
-         # find best next state
-         max_cost = 0
-         max_index = 0
-         index = 0
+      if fringe_max.num_conflicts > local_max.num_conflicts:
+         num_better_states += 1
 
-         for state in fringe_states:
-            #print("states")
-            if not tuple(state.board) in explored:
-               if state.num_conflicts > max_cost:
-                  max_cost = state.num_conflicts
-                  max_index = index
+      if (num_better_states == 0):
+         plateau_count += 1
 
-            index += 1
+      local_max = fringe_max
 
-         fringe_max = fringe_states[max_index]
+   return local_max
 
-         # state.manhattan_dist = state.get_manhattan_dist()
-         #print()
-         #print("local conflicts:", local_max.num_conflicts)
-         #print("fringe conflicts:", fringe_max.num_conflicts)
-         if fringe_max.num_conflicts > local_max.num_conflicts:
-            local_max = fringe_max
-            num_better_states += 1
-            #print("better state")
 
-      # update glabal_max as needed
-      #print()
-      #print("Iteration:", hill_climbs)
-      #print("Local max:", local_max.board)
-      #print("local conflicts:", local_max.num_conflicts)
-      #print("global max:", global_max.board)
-      #print("global conflicts:", global_max.num_conflicts)
+def find_max_fringe_state(fringe_states, explored):
+   max_cost = 0
+   max_index = 0
+   index = 0
 
-      if (local_max.num_conflicts > global_max.num_conflicts):
-         local_cost = len(solve_puzzle(local_max.board))
-         #print("Local cost:", local_cost)
-         if local_cost > global_cost:
-            global_max = local_max
-            global_cost = local_cost
+   for state in fringe_states:
+      #print("states")
+      if not tuple(state.board) in explored:
+         if state.num_conflicts > max_cost:
+            max_cost = state.num_conflicts
+            max_index = index
 
-   #print(global_max.board)
-   #print(global_cost)
-   return global_max.board
+      index += 1
+
+   fringe_max = fringe_states[max_index]
+   return fringe_max
 
 
 def simulated_annealing(puzzle):
@@ -343,9 +343,10 @@ def count_conflicts(tiles):
 ## SHUFFLE TILES --------------------------------------------------------------
 def shuffle_tiles(width):
    #tiles = hill_climb(width)
-   tiles = fill_tiles_in_order(width)
-   puzzle = create_init_puzzle(tiles, width)
-   tiles = simulated_annealing_path_cost(puzzle)
+   #tiles = fill_tiles_in_order(width)
+   #puzzle = create_init_puzzle(tiles, width)
+   #tiles = simulated_annealing_path_cost(puzzle)
+   tiles = path_hill_climb(width)
    return tiles
 
 def simulated_annealing_path_cost(puzzle):
@@ -388,78 +389,64 @@ def anneal_path_cost(puzzle):
    return puzzle
 
 
-def hill_climb(width):
-   total_hill_climbs = 1000
+def path_hill_climb(width):
+   total_hill_climbs = 100000
    hill_climbs = 0
    tiles = fill_tiles_in_order(width)
+
+   # initialize global max
    global_max = create_init_puzzle(tiles, width)
    global_cost = 0
+
+   # initialize explored set
    explored = set()
    explored.add(tuple(global_max.board))
 
    while(hill_climbs < total_hill_climbs):
       hill_climbs += 1
-      num_better_states = 1
-      tiles = generate_random_board(width)
-
-      # keep generating a random baord if current board has been explored
-      while(tuple(tiles) in explored):
-         tiles = generate_random_board(width)
-
-      local_max = create_init_puzzle(tiles, width)
-      explored.add(tuple(tiles))
-
-      # find local max
-      while num_better_states:
-         print("in while")
-         num_better_states = 0
-
-         fringe_states = get_fringe_states(local_max)
-
-         # find best next state
-         max_cost = 0
-         max_index = 0
-         index = 0
-
-         for state in fringe_states:
-            print("states")
-            if not tuple(state.board) in explored:
-               if state.manhattan_dist > max_cost:
-                  max_cost = state.manhattan_dist
-                  max_index = index
-
-            index += 1
-
-         fringe_max = fringe_states[max_index]
-
-         # state.manhattan_dist = state.get_manhattan_dist()
-         print()
-         print("local manhattan:", local_max.manhattan_dist)
-         print("fringe manhattan:", fringe_max.manhattan_dist)
-         if fringe_max.manhattan_dist > local_max.manhattan_dist:
-            local_max = fringe_max
-            num_better_states += 1
-            print("better state")
-
+      local_max = single_hill_climb(width, explored)
       # update glabal_max as needed
-      print()
-      print("Iteration:", hill_climbs)
-      print("Local max:", local_max.board)
-      print("local manhattan_dist:", local_max.manhattan_dist)
-      print("global max:", global_max.board)
-      print("global manhattan_dist:", global_max.manhattan_dist)
-
       if (local_max.manhattan_dist > global_max.manhattan_dist):
          local_cost = len(solve_puzzle(local_max.board))
-         print("Local cost:", local_cost)
-         if local_cost > global_cost:
+         global_cost = len(solve_puzzle(global_max.board))
+         if (local_cost > global_cost):
             global_max = local_max
-            global_cost = local_cost
 
-   print(global_max.board)
-   print(global_cost)
    return global_max.board
 
+
+def path_single_hill_climb(width, explored):
+   plateau_count = 0
+   tiles = generate_random_board(width)
+
+   # keep generating a random baord if current board has been explored
+   rand_iterations = 0
+   max_rand_iterations = 10
+   while((tuple(tiles) in explored) and rand_iterations < max_rand_iterations):
+      rand_iterations += 1
+      tiles = generate_random_board(width)
+
+   local_max = create_init_puzzle(tiles, width)
+   explored.add(tuple(tiles))
+
+   # find local max
+   while plateau_count < 3:
+      num_better_states = 0
+
+      fringe_states = get_fringe_states(local_max)
+
+      # find best next state
+      fringe_max = find_max_fringe_state(fringe_states, explored)
+
+      if fringe_max.manhattan_dist > local_max.manhattan_dist:
+         num_better_states += 1
+
+      if (num_better_states == 0):
+         plateau_count += 1
+
+      local_max = fringe_max
+
+   return local_max
 
 def generate_random_board(width):
    tiles = []

@@ -51,10 +51,10 @@ def run_solve_puzzle(expected, tiles):
 def test_conflict_tiles():
    print()
    print("------------------- CONFLICT TILES ----------------")
-   print("TEST 1: width = 2")
-   minimum_cost = 0
-   width = 2
-   run_conflict_tiles(minimum_cost, width)
+   # print("TEST 1: width = 2")
+   # minimum_cost = 0
+   # width = 2
+   # run_conflict_tiles(minimum_cost, width)
 
    print("TEST 2: width = 3")
    minimum_cost = 4
@@ -140,6 +140,7 @@ def run_shuffle_tiles(expected, width):
    end_time = round(time.clock(), 2)
    print("solving...")
    soln = driver.solve_puzzle(tiles)
+   print("soln:", len(soln))
    output_test_results(expected, len(soln), end_time - start_time, False)
 
 
@@ -359,10 +360,10 @@ def run_generate_random_board(width):
 def main():
    # DELIVERABLES:
    # test_solve_puzzle()
-   test_conflict_tiles()
+   # test_conflict_tiles()
    # soln = driver.solve_puzzle([0, 2, 1, 3])
    # print(soln)
-   # test_shuffle_tiles()
+   test_shuffle_tiles()
    # test_is_solvable()
 
    # HELPER FUNCTIONS:
