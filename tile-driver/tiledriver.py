@@ -197,7 +197,7 @@ def single_hill_climb(width, explored):
       # find best next state
       # random_threshold = 0.3
       #if random.random() > random_threshold:
-      #   fringe_max = pick_randon_state(fringe_states)
+      #   fringe_max = pick_random_state(fringe_states)
       #else:
       fringe_max = find_max_fringe_state(fringe_states, explored)
 
@@ -283,7 +283,7 @@ def anneal(puzzle):
          # get all fringe states
          fringe_states = get_fringe_states(puzzle)
          max_move_iterations = 4
-         next_puzzle = pick_randon_state(fringe_states, explored)
+         next_puzzle = pick_random_state(fringe_states, explored)
          new_complexity = find_num_conflicts(next_puzzle.board,
                                              next_puzzle.width)
          ap = acceptance_probability(old_complexity, new_complexity, T)
@@ -306,7 +306,7 @@ def acceptance_probability(old_complexity, new_complexity, T):
    return math.exp((new_complexity - old_complexity) / T)
 
 
-def pick_randon_state(fringe_states, explored):
+def pick_random_state(fringe_states, explored):
    is_explored = True
    max_iterations = 5
    i = 0
@@ -417,16 +417,20 @@ def simulated_annealing_path_cost(puzzle):
 
 def anneal_path_cost(puzzle):
    old_complexity = puzzle.manhattan_dist
+   explored = set()
+   explored.add(tuple(puzzle.board))
+
    T = 1.0
    T_min = 0.0001
    alpha = 0.91
+
    while T > T_min:
       i = 1
       num_iterations = 500
       while i <= num_iterations:
          # get all fringe states
          fringe_states = get_fringe_states(puzzle)
-         next_puzzle = pick_randon_state(fringe_states)
+         next_puzzle = pick_random_state(fringe_states, explored)
          new_complexity = next_puzzle.manhattan_dist
          ap = acceptance_probability(old_complexity, new_complexity, T)
          if ap > random.random():
