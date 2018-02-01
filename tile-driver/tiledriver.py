@@ -235,24 +235,6 @@ def get_conflict_threshold(width):
    return conflict_threshold
 
 
-def find_max_fringe_state(fringe_states, explored):
-   max_cost = 0
-   max_index = 0
-   index = 0
-
-   for state in fringe_states:
-      #print("states")
-      if not tuple(state.board) in explored:
-         if state.num_conflicts > max_cost:
-            max_cost = state.num_conflicts
-            max_index = index
-
-      index += 1
-
-   fringe_max = fringe_states[max_index]
-   return fringe_max
-
-
 def simulated_annealing(puzzle):
    total_iterations = 12
    num_iterations = 0
@@ -456,7 +438,7 @@ def path_hill_climb(width):
 
    while(hill_climbs < total_hill_climbs):
       hill_climbs += 1
-      local_max = single_hill_climb(width, explored)
+      local_max = path_single_hill_climb(width, explored)
       # update glabal_max as needed
       if (local_max.manhattan_dist > global_max.manhattan_dist):
          local_cost = len(solve_puzzle(local_max.board))
@@ -519,6 +501,24 @@ def fill_tiles_in_order(width):
    for i in range(int(pow(width, 2))):
       tiles.append(i)
    return tiles
+
+
+def find_max_fringe_state(fringe_states, explored):
+   max_cost = 0
+   max_index = 0
+   index = 0
+
+   for state in fringe_states:
+      #print("states")
+      if not tuple(state.board) in explored:
+         if state.num_conflicts > max_cost:
+            max_cost = state.num_conflicts
+            max_index = index
+
+      index += 1
+
+   fringe_max = fringe_states[max_index]
+   return fringe_max
 
 
 def is_solvable(tiles):
