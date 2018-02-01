@@ -159,7 +159,7 @@ def conflict_hill_climb(width):
    explored = set()
    explored.add(tuple(global_max.board))
 
-   while(hill_climbs < total_hill_climbs):
+   while (hill_climbs < total_hill_climbs):
       hill_climbs += 1
       local_max = single_hill_climb(width, explored)
       # update glabal_max as needed
@@ -190,7 +190,11 @@ def single_hill_climb(width, explored):
       fringe_states = get_fringe_states(local_max)
 
       # find best next state
-      fringe_max = find_max_fringe_state(fringe_states, explored)
+      if random.random() > 0.8:
+         fringe_max = pick_randon_state(fringe_states)
+      else:
+         fringe_max = find_max_fringe_state(fringe_states, explored)
+
 
       if fringe_max.num_conflicts > local_max.num_conflicts:
          num_better_states += 1
@@ -342,10 +346,12 @@ def count_conflicts(tiles):
 
 ## SHUFFLE TILES --------------------------------------------------------------
 def shuffle_tiles(width):
-   #tiles = hill_climb(width)
-   #tiles = fill_tiles_in_order(width)
-   #puzzle = create_init_puzzle(tiles, width)
-   #tiles = simulated_annealing_path_cost(puzzle)
+   if width < 3:
+      tiles = fill_tiles_in_order(width)
+      puzzle = create_init_puzzle(tiles, width)
+      tiles = simulated_annealing_path_cost(puzzle)
+      return tiles
+
    tiles = path_hill_climb(width)
    return tiles
 
@@ -390,7 +396,7 @@ def anneal_path_cost(puzzle):
 
 
 def path_hill_climb(width):
-   total_hill_climbs = 100000
+   total_hill_climbs = 10000
    hill_climbs = 0
    tiles = fill_tiles_in_order(width)
 

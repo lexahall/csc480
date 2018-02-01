@@ -360,10 +360,10 @@ def run_generate_random_board(width):
 def main():
    # DELIVERABLES:
    # test_solve_puzzle()
-   # test_conflict_tiles()
+   test_conflict_tiles()
    # soln = driver.solve_puzzle([0, 2, 1, 3])
    # print(soln)
-   test_shuffle_tiles()
+   # test_shuffle_tiles()
    # test_is_solvable()
 
    # HELPER FUNCTIONS:
