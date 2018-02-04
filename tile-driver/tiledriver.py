@@ -141,6 +141,7 @@ class Puzzle(object):
 ## CONFLICT TILES -------------------------------------------------------------
 def conflict_tiles(width):
    tiles = fill_tiles_in_order(width)
+   tiles = generate_random_board(width)
    puzzle = create_init_puzzle(tiles, width)
    tiles = simulated_annealing(puzzle)
    #tiles = conflict_hill_climb(width)
@@ -186,21 +187,23 @@ def get_conflict_threshold(width):
    elif width == three:
       conflict_threshold = 4
    elif width == four:
-      conflict_threshold = 8
+      conflict_threshold = 9 # Max so far 10
    elif width == five:
-      conflict_threshold = 12
+      conflict_threshold = 8 # Max so far 14, maybe 12
    elif width == six:
-      conflict_threshold = 15
+      conflict_threshold = 8 # Max so far 20, maybe 17?
 
    return conflict_threshold
 
 
 def simulated_annealing(puzzle):
-   total_iterations = 12
+   total_iterations = 5
    num_iterations = 0
    global_max = puzzle
 
-   while (num_iterations < total_iterations):
+   threshold = get_conflict_threshold(puzzle.width)
+   while (num_iterations < total_iterations or
+          global_max.num_conflicts < threshold):
       num_iterations += 1
       new_puzzle = anneal(puzzle)
       if (new_puzzle.num_conflicts > global_max.num_conflicts):
@@ -243,7 +246,7 @@ def acceptance_probability(old_complexity, new_complexity, T):
       return 1
 
    if (old_complexity == new_complexity):
-      return random.random()
+      return random.random() + .5
 
    return math.exp((new_complexity - old_complexity) / T)
 
