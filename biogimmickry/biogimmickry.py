@@ -20,11 +20,10 @@ def interpret(program, array):
     if command == ">":
       mem_ptr += 1
       if mem_ptr == len(array):
-         mem_ptr = 0 # wrap back around to the front of the list
-         #mem_ptr = len(array) - 1 #don't wrap around
+         mem_ptr = len(array) - 1 # don't wrap around
 
     if command == "<":
-      mem_ptr = 0 if mem_ptr <= 0 else mem_ptr - 1 # don't wrap around?
+      mem_ptr = 0 if mem_ptr <= 0 else mem_ptr - 1 # don't wrap around
 
     if command == "+":
       array[mem_ptr] = array[mem_ptr] + 1
