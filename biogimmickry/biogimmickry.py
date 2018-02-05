@@ -62,10 +62,12 @@ def build_bracket_map(program):
 
 
 # ----------------  EVALUATE_FITNESS -------------------------------------------
-def evaluate_fitness(target, program, interpreter):
+def evaluate_fitness(program, target, interpreter):
   actual = [0] * len(target)
 
   interpreter(program, actual)
+
+  print(actual)
 
   sum_diff = 0
   for i in range(len(actual)):
