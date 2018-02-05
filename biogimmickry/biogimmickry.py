@@ -4,6 +4,7 @@
 # Assignment:  Biogimmickry
 # Term:        Winter 2018
 
+import random
 
 # ----------------  INTERPRET -------------------------------------------------
 def interpret(program, array):
@@ -79,8 +80,8 @@ def crossover(program_x, program_y):
   len_y = len(program_y)
   min_len = len_x if len_x < len_y else len_y
 
-  index = int(random.random()*min_len)
-  return (program_x[:index]+program_y[index:], program_y[:index]+program_x[index:])
+  index = int(random.random() * min_len)
+  return (program_x[:index] + program_y[index:], program_y[:index] + program_x[index:])
 
 
 def main():
