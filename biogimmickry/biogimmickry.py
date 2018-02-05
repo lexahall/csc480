@@ -5,12 +5,14 @@
 # Term:        Winter 2018
 
 import random
+import math
 
 # ----------------  INTERPRET -------------------------------------------------
 def interpret(program, array):
   program = clean_program(list(program))
   bracket_map = build_bracket_map(program)
 
+  # test it out starting in different places
   pc = 0
   mem_ptr = 0
 
@@ -70,7 +72,7 @@ def evaluate_fitness(program, target, interpreter):
 
   sum_diff = 0
   for i in range(len(actual)):
-    sum_diff += abs(actual[i] - target[i])
+    sum_diff += pow(actual[i] - target[i], 2)
 
   return sum_diff
 
@@ -95,11 +97,32 @@ def main():
   #print(array)
 
   # test evaluate fitness
-  target = [1, 2, 3, 4, 5, 6, 7, 8]
+  target = [0, 0, 0, 0, 0, 0, 0, 0]
   program = ">>+<->>++>+<+"
-  print('target', target)
   #interpreter = interpret
-  fitness = evaluate_fitness(target, program, interpret)
+  fitness = evaluate_fitness(program, target, interpret)
   print(fitness)
+
+  target = [0, 0, 0, 0, 0, 0, 0, 0]
+  program = ">><>>><"
+  #interpreter = interpret
+  fitness = evaluate_fitness(program, target, interpret)
+  print(fitness)
+
+  target = [0, 0, 0, 0, 0, 0, 0, 0]
+  program = ">[>+]<++++++++>>[-------]-><"
+  #interpreter = interpret
+  fitness = evaluate_fitness(program, target, interpret)
+  print(fitness)
+
+  # test crossover
+  program_x = '<<<<<<<<'
+  program_y = '>>>>'
+  prog_x, prog_y = crossover(program_x, program_y)
+  print(prog_x, prog_y)
+
+  # test create simple arrary
+  target = [0, 0, 0, 0, 0, 0, 0]
+  create_simple_program(target, interpret)
 
 if __name__ == "__main__": main()
