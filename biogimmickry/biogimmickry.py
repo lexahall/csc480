@@ -81,10 +81,53 @@ def evaluate_fitness(program, target, interpreter):
 def crossover(program_x, program_y):
   len_x = len(program_x)
   len_y = len(program_y)
-  min_len = len_x if len_x < len_y else len_y
+  min_len = min(len_x, len_y)
 
-  index = int(random.random() * min_len)
-  return (program_x[:index] + program_y[index:], program_y[:index] + program_x[index:])
+  index = int(random.random() * min_len - 1) + 1
+  prog_x = program_x[:index] + program_y[index:]
+  prog_y = program_y[:index] + program_x[index:]
+
+  return (prog_x, prog_y)
+
+
+# --------------- CREATE SIMPLE PROGRAM ----------------------------------------
+def create_simple_program(target, interpreter):
+  # suggestions: use - gen[(program, fitness)]
+  # get some top percentile: sorted(gen)[:len//n]
+  # randrange(0, sum_fitness)
+
+  # create initial population using random generation
+  # start loop
+    # apply fitness fuction
+    # select top percentile, but keep pop size the same (will create duplication) ?
+    # crossover
+    # mutate
+  # loop
+
+  population_size = 100
+  population = [None] * population_size
+
+  # Generate random population
+  max_prog_len = 100
+  for i in range(population_size):
+    population[i] = generate_random_program(max_prog_len)
+
+  print(population)
+  program = population[0]
+  return program
+
+
+def generate_random_program(max_prog_len):
+  alphabet = ['<', '>', '+', '-']
+  alphabet_len = len(alphabet)
+  prog_len = int(random.random() * max_prog_len - 1) + 1
+  program = ''
+
+  for i in range(prog_len):
+    rand_index = int(random.random() * alphabet_len)
+    program += alphabet[rand_index]
+
+  return program
 
 
 def main():
