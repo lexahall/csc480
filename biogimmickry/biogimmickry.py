@@ -12,7 +12,6 @@ def interpret(program, array):
   program = clean_program(list(program))
   bracket_map = build_bracket_map(program)
 
-  # TODO: write tests with pc starting in different places
   pc = 0
   mem_ptr = 0
 
@@ -90,7 +89,6 @@ def crossover(program_x, program_y):
 
 # --------------- MUTATION -----------------------------------------------------
 def conditionally_mutate(program):
-  # daniel: somewhere between .2 and .3
   chance_of_mutation = 0.1 # tweak
 
   if random.random() < chance_of_mutation:
@@ -185,9 +183,9 @@ def create_simple_program(target, interpreter):
   top_fitness_score = population[0][1]
 
   num_iterations = 0
+
   # evolve population until target is reached
   while (top_fitness_score != 0 and num_iterations < max_iterations):
-    # create new next gen
     next_gen = []
 
     # select, crossover and mutate until next gen is full
@@ -249,13 +247,17 @@ def generate_random_program(min_prog_len, max_prog_len):
 
 
 def mate(population, population_size, target, interpreter, next_gen):
-  # select two from top percentile (x, y)
+  # select
   program_x, program_y = select(population, population_size)
 
+  # crossover
   program_x, program_y = crossover(program_x, program_y)
+
+  # mutate
   program_x = conditionally_mutate(program_x)
   program_y = conditionally_mutate(program_y)
-  # evaluate fitness for x and y
+
+  # evaluate fitness
   fitness_x = evaluate_fitness(program_x, target, interpreter)
   fitness_y = evaluate_fitness(program_y, target, interpreter)
 
