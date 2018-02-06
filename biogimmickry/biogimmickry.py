@@ -68,7 +68,7 @@ def evaluate_fitness(program, target, interpreter):
 
   interpreter(program, actual)
 
-  print(actual)
+  # print(actual)
 
   sum_diff = 0
   for i in range(len(actual)):
@@ -124,25 +124,25 @@ def mutate(program):
   return mutated_program
 
 
-def remove_command(program):
+#def remove_command(program):
 
 
-def add_command(program):
+#def add_command(program):
 
 
-def modify_command():
+#def modify_command():
 
 # --------------- SELECTION ----------------------------------------------------
 def select(population, population_size):
   top_percentile_divisor = 5 # tweak
   top_percentile_len = population_size // top_percentile_divisor
-  print()
-  print('top percentile length:', top_percentile_len)
+  #print()
+  #print('top percentile length:', top_percentile_len)
 
   top_percentile = population[:top_percentile_len]
 
   max_fitness = population[top_percentile_len - 1][1]
-  print('max fitness', max_fitness)
+  #print('max fitness', max_fitness)
 
   top_percentile, fitness_sum = adjust_fitness(top_percentile, max_fitness)
 
@@ -153,9 +153,9 @@ def select(population, population_size):
 
 
 def select_individual(population, population_size, fitness_sum):
-  print('fitness sum:', fitness_sum)
+  #print('fitness sum:', fitness_sum)
   select_threshold = random.random() * fitness_sum
-  print('select_threshold:', select_threshold)
+  #print('select_threshold:', select_threshold)
   selection_sum = 0
   i = 0
 
@@ -182,18 +182,6 @@ def adjust_fitness(population, max_fitness):
 
 # --------------- CREATE SIMPLE PROGRAM ----------------------------------------
 def create_simple_program(target, interpreter):
-  # suggestions: use - gen[(program, fitness)]
-  # get some top percentile: sorted(gen)[:len//n]
-  # randrange(0, sum_fitness)
-
-  # create initial population using random generation
-  # start loop
-    # apply fitness fuction
-    # select top percentile, but keep pop size the same (will create duplication) ?
-    # crossover
-    # mutate
-  # loop
-
   max_iterations = 1000 # tweak
   population_size = 100 # tweak
   population = []
@@ -210,33 +198,33 @@ def create_simple_program(target, interpreter):
     population.append(entry)
 
   population.sort(key=lambda program: program[1])
-  print()
-  print('starting population:', population)
+  #print()
+  #print('starting population:', population)
   top_fitness_score = population[0][1]
 
   # evolve population until target is reached
   num_iterations = 0
   while (top_fitness_score != 0 and num_iterations < max_iterations):
-    print()
-    print()
-    print()
-    print('------------------ ITERATION:', num_iterations, '-------------')
+   # print()
+   # print()
+   # print()
+   # print('------------------ ITERATION:', num_iterations, '-------------')
     next_gen = []
 
     while (len(next_gen) < population_size):
       # select two from top percentile (x, y)
       program_x, program_y = select(population, population_size)
 
-      print()
-      print('AFTER SELECTION')
-      print(program_x, '\n', program_y)
+     # print()
+     # print('AFTER SELECTION')
+     # print(program_x, '\n', program_y)
       program_x, program_y = crossover(program_x, program_y)
-      print('AFTER CROSSOVER')
-      print(program_x, '\n', program_y)
+     # print('AFTER CROSSOVER')
+     # print(program_x, '\n', program_y)
       program_x = conditionally_mutate(program_x)
       program_y = conditionally_mutate(program_y)
-      print('AFTER MUTATION')
-      print(program_x, '\n', program_y)
+     # print('AFTER MUTATION')
+     # print(program_x, '\n', program_y)
       # evaluate fitness for x and y
       fitness_x = evaluate_fitness(program_x, target, interpreter)
       fitness_y = evaluate_fitness(program_y, target, interpreter)
@@ -248,12 +236,9 @@ def create_simple_program(target, interpreter):
       next_gen.append(entry_y)
 
     # sort population
-    print('NEXT GEN', next_gen)
+   # print('NEXT GEN', next_gen)
     top_fitness_score = population[0][1]
     num_iterations += 1
-
-  # print("After mutation")
-  # print(population)
 
   program = population[0][0]
 
