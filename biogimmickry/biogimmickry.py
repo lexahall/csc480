@@ -194,68 +194,92 @@ def create_simple_program(target, interpreter):
     # mutate
   # loop
 
-  population_size = 100
-  population = [None] * population_size
+  max_iterations = 1000 # tweak
+  population_size = 100 # tweak
+  population = []
 
-  # Generate random population
-  max_prog_len = 100
+  # create initial population
+  min_prog_len = calculate_min_prog_length(target)
+  max_prog_len = min_prog_len * 3 + 1 # tweak
+
+  fitness_sum = 0
   for i in range(population_size):
-    population[i] = generate_random_program(max_prog_len)
+    program = generate_random_program(min_prog_len, max_prog_len)
+    fitness = evaluate_fitness(program, target, interpreter)
+    entry = (program, fitness)
+    population.append(entry)
 
-  print(population)
-  program = population[0]
+  population.sort(key=lambda program: program[1])
+  print()
+  print('starting population:', population)
+  top_fitness_score = population[0][1]
+
+  # evolve population until target is reached
+  num_iterations = 0
+  while (top_fitness_score != 0 and num_iterations < max_iterations):
+    print()
+    print()
+    print()
+    print('------------------ ITERATION:', num_iterations, '-------------')
+    next_gen = []
+
+    while (len(next_gen) < population_size):
+      # select two from top percentile (x, y)
+      program_x, program_y = select(population, population_size)
+
+      print()
+      print('AFTER SELECTION')
+      print(program_x, '\n', program_y)
+      program_x, program_y = crossover(program_x, program_y)
+      print('AFTER CROSSOVER')
+      print(program_x, '\n', program_y)
+      program_x = conditionally_mutate(program_x)
+      program_y = conditionally_mutate(program_y)
+      print('AFTER MUTATION')
+      print(program_x, '\n', program_y)
+      # evaluate fitness for x and y
+      fitness_x = evaluate_fitness(program_x, target, interpreter)
+      fitness_y = evaluate_fitness(program_y, target, interpreter)
+
+      # add x and y to next gen
+      entry_x = program_x, fitness_x
+      entry_y = program_y, fitness_y
+      next_gen.append(entry_x)
+      next_gen.append(entry_y)
+
+    # sort population
+    print('NEXT GEN', next_gen)
+    top_fitness_score = population[0][1]
+    num_iterations += 1
+
+  # print("After mutation")
+  # print(population)
+
+  program = population[0][0]
+
   return program
 
+def calculate_min_prog_length(target):
+  prog_len = 0
+  target_len = len(target)
 
-def generate_random_program(max_prog_len):
+  if target[target_len - 1] != 0:
+    prog_len += target_len - 1
+
+  for i in range(target_len):
+      prog_len += abs(target[i])
+
+  return prog_len
+
+
+def generate_random_program(min_prog_len, max_prog_len):
   alphabet = ['<', '>', '+', '-']
   alphabet_len = len(alphabet)
-  prog_len = int(random.random() * max_prog_len - 1) + 1
+  prog_len = random.randint(min_prog_len, max_prog_len - 1)
   program = ''
 
   for i in range(prog_len):
-    rand_index = int(random.random() * alphabet_len)
+    rand_index = random.randint(0, alphabet_len - 1)
     program += alphabet[rand_index]
 
   return program
-
-
-def main():
-  program = ">>+<->>++>+<+"
-  array = [0] * 8
-
-  # test interpret
-  #print(array)
-  #interpret(program, array)
-  #print(array)
-
-  # test evaluate fitness
-  target = [0, 0, 0, 0, 0, 0, 0, 0]
-  program = ">>+<->>++>+<+"
-  #interpreter = interpret
-  fitness = evaluate_fitness(program, target, interpret)
-  print(fitness)
-
-  target = [0, 0, 0, 0, 0, 0, 0, 0]
-  program = ">><>>><"
-  #interpreter = interpret
-  fitness = evaluate_fitness(program, target, interpret)
-  print(fitness)
-
-  target = [0, 0, 0, 0, 0, 0, 0, 0]
-  program = ">[>+]<++++++++>>[-------]-><"
-  #interpreter = interpret
-  fitness = evaluate_fitness(program, target, interpret)
-  print(fitness)
-
-  # test crossover
-  program_x = '<<<<<<<<'
-  program_y = '>>>>'
-  prog_x, prog_y = crossover(program_x, program_y)
-  print(prog_x, prog_y)
-
-  # test create simple arrary
-  target = [0, 0, 0, 0, 0, 0, 0]
-  create_simple_program(target, interpret)
-
-if __name__ == "__main__": main()
