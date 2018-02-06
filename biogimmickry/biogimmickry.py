@@ -179,52 +179,48 @@ def adjust_fitness(population, max_fitness):
 def create_simple_program(target, interpreter):
   max_iterations = 1000 # tweak
   population_size = 100 # tweak
-  population = []
 
-  # create initial population
-  min_prog_len = calculate_min_prog_length(target)
-  max_prog_len = min_prog_len * 3 + 1 # tweak
+  population = initialize_population(target, interpreter, population_size)
 
-  fitness_sum = 0
-  for i in range(population_size):
-    program = generate_random_program(min_prog_len, max_prog_len)
-    fitness = evaluate_fitness(program, target, interpreter)
-    entry = (program, fitness)
-    population.append(entry)
-
-  population.sort(key=lambda program: program[1])
   top_fitness_score = population[0][1]
 
-  # evolve population until target is reached
   num_iterations = 0
+  # evolve population until target is reached
   while (top_fitness_score != 0 and num_iterations < max_iterations):
+    # create new next gen
     next_gen = []
 
+    # select, crossover and mutate until next gen is full
     while (len(next_gen) < population_size):
-      # select two from top percentile (x, y)
-      program_x, program_y = select(population, population_size)
-
-      program_x, program_y = crossover(program_x, program_y)
-      program_x = conditionally_mutate(program_x)
-      program_y = conditionally_mutate(program_y)
-      # evaluate fitness for x and y
-      fitness_x = evaluate_fitness(program_x, target, interpreter)
-      fitness_y = evaluate_fitness(program_y, target, interpreter)
-
-      # add x and y to next gen
-      entry_x = program_x, fitness_x
-      entry_y = program_y, fitness_y
-      next_gen.append(entry_x)
-      next_gen.append(entry_y)
+      mate(population, population_size, target, interpreter, next_gen)
 
     # sort population
-    next_gen.sort(key=lambda program: program[1])
+    next_gen.sort(key = lambda program: program[1])
+    population = next_gen
     top_fitness_score = population[0][1]
     num_iterations += 1
 
   program = population[0][0]
 
   return program
+
+
+def initialize_population(target, interpreter, population_size):
+  population = []
+  min_prog_len = calculate_min_prog_length(target)
+  prog_length_multiplier = 3
+  max_prog_len = min_prog_len * prog_length_multiplier + 1 # tweak
+
+  for i in range(population_size):
+    program = generate_random_program(min_prog_len, max_prog_len)
+    fitness = evaluate_fitness(program, target, interpreter)
+    entry = (program, fitness)
+    population.append(entry)
+
+  population.sort(key = lambda program: program[1])
+
+  return population
+
 
 def calculate_min_prog_length(target):
   prog_len = 0
@@ -250,3 +246,21 @@ def generate_random_program(min_prog_len, max_prog_len):
     program += alphabet[rand_index]
 
   return program
+
+
+def mate(population, population_size, target, interpreter, next_gen):
+  # select two from top percentile (x, y)
+  program_x, program_y = select(population, population_size)
+
+  program_x, program_y = crossover(program_x, program_y)
+  program_x = conditionally_mutate(program_x)
+  program_y = conditionally_mutate(program_y)
+  # evaluate fitness for x and y
+  fitness_x = evaluate_fitness(program_x, target, interpreter)
+  fitness_y = evaluate_fitness(program_y, target, interpreter)
+
+  # add x and y to next gen
+  entry_x = program_x, fitness_x
+  entry_y = program_y, fitness_y
+  next_gen.append(entry_x)
+  next_gen.append(entry_y)
