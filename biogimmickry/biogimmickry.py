@@ -72,7 +72,7 @@ def evaluate_fitness(program, target, interpreter):
 
   sum_diff = 0
   for i in range(len(actual)):
-    sum_diff += pow(actual[i] - target[i], 2)
+    sum_diff += abs(actual[i] - target[i])
 
   return sum_diff
 
