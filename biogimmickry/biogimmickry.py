@@ -83,11 +83,101 @@ def crossover(program_x, program_y):
   len_y = len(program_y)
   min_len = min(len_x, len_y)
 
-  index = int(random.random() * min_len - 1) + 1
-  prog_x = program_x[:index] + program_y[index:]
-  prog_y = program_y[:index] + program_x[index:]
+  cross_index = random.randint(1, min_len)
+  prog_x = program_x[:cross_index] + program_y[cross_index:]
+  prog_y = program_y[:cross_index] + program_x[cross_index:]
 
   return (prog_x, prog_y)
+
+
+# --------------- MUTATION -----------------------------------------------------
+def conditionally_mutate(program):
+  # daniel: somewhere between .2 and .3
+  chance_of_mutation = 0.1 # tweak
+
+  if random.random() < chance_of_mutation:
+    program = mutate(program)
+
+  return program
+
+
+def mutate(program):
+  alphabet = ['<', '>', '+', '-']
+  mutation_percentage = .2
+
+  alphabet_len = len(alphabet)
+  program_len = len(program)
+  mutation_len = int(program_len * mutation_percentage)
+  minimum_len = 1
+  mutation_len = mutation_len if mutation_len > 0 else minimum_len
+
+  mod_index = random.randint(0, program_len - mutation_len)
+
+  mutated_program = ''
+
+  for i in range(program_len):
+    if mod_index <= i <= mod_index + mutation_len:
+      mutated_program += alphabet[random.randint(0, alphabet_len - 1)]
+    else:
+      mutated_program += program[i]
+
+  return mutated_program
+
+
+def remove_command(program):
+
+
+def add_command(program):
+
+
+def modify_command():
+
+# --------------- SELECTION ----------------------------------------------------
+def select(population, population_size):
+  top_percentile_divisor = 5 # tweak
+  top_percentile_len = population_size // top_percentile_divisor
+  print()
+  print('top percentile length:', top_percentile_len)
+
+  top_percentile = population[:top_percentile_len]
+
+  max_fitness = population[top_percentile_len - 1][1]
+  print('max fitness', max_fitness)
+
+  top_percentile, fitness_sum = adjust_fitness(top_percentile, max_fitness)
+
+  program_x = select_individual(top_percentile, top_percentile_len, fitness_sum)
+  program_y = select_individual(top_percentile, top_percentile_len, fitness_sum)
+
+  return program_x, program_y
+
+
+def select_individual(population, population_size, fitness_sum):
+  print('fitness sum:', fitness_sum)
+  select_threshold = random.random() * fitness_sum
+  print('select_threshold:', select_threshold)
+  selection_sum = 0
+  i = 0
+
+  while selection_sum < select_threshold:
+    selection_sum += population[i][1]
+    i += 1
+
+  return population[i - 1][0]
+
+
+def adjust_fitness(population, max_fitness):
+  population_len = len(population)
+  adjusted_population = []
+
+  fitness_sum = 0
+  for i in range(population_len):
+    adjusted_fitness = abs(population[i][1] - max_fitness)
+    fitness_sum += adjusted_fitness
+    adjusted_entry = (population[i][0], adjusted_fitness)
+    adjusted_population.append(adjusted_entry)
+
+  return adjusted_population, fitness_sum
 
 
 # --------------- CREATE SIMPLE PROGRAM ----------------------------------------
