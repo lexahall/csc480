@@ -98,10 +98,8 @@ def conditionally_mutate(program):
 
 
 def mutate(program):
-  alphabet = ['<', '>', '+', '-']
   mutation_percentage = .2
 
-  alphabet_len = len(alphabet)
   program_len = len(program)
   mutation_len = int(program_len * mutation_percentage)
   minimum_len = 1
@@ -113,22 +111,34 @@ def mutate(program):
 
   for i in range(program_len):
     if mod_index <= i <= mod_index + mutation_len:
-      mutated_program += alphabet[random.randint(0, alphabet_len - 1)]
+      mutate_command(mutated_program, program, i)
     else:
       mutated_program += program[i]
 
   return mutated_program
 
 
-# TODO: fill in stubs and split up mutate function
+def mutate_command(mutated_program, program, current_pos):
+  alphabet = ['<', '>', '+', '-']
+  chance_of_deletion = .2
+  chance_of_addition = .2
 
-#def remove_command(program):
+  random_chance = random.random()
+  if random_chance < chance_of_deletion:
+    # remove a command
+    mutated_program += ''
+  elif random_chance > (1 - chance_of_addition):
+    # add a command
+    mutated_program += generate_random_command(alphabet)
+    mutated_program += program[current_pos]
+  else:
+    # modify a command
+    mutated_program += generate_random_command(alphabet)
 
 
-#def add_command(program):
+def generate_random_command(alphabet):
+  return alphabet[random.randint(0, len(alphabet) - 1)]
 
-
-#def modify_command():
 
 # --------------- SELECTION ----------------------------------------------------
 def select(population, population_size):
