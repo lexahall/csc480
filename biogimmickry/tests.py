@@ -82,9 +82,10 @@ def output_test_results(expected, actual, execution_time, equality = True):
       print("expected:", expected)
       print("actual:", actual)
 
-  if execution_time > 0.05:
-    print("execution time:", execution_time)
+  if execution_time > 120:
+    print("✗ TIMEOUT")
 
+  print("time:", execution_time)
   print()
 
 
