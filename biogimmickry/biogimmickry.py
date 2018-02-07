@@ -175,7 +175,7 @@ def adjust_fitness(population, max_fitness):
 
 # --------------- CREATE SIMPLE PROGRAM ----------------------------------------
 def create_simple_program(target, interpreter):
-  max_iterations = 1000 # tweak
+  max_iterations = 2000 # tweak
   population_size = 100 # tweak
 
   population = initialize_population(target, interpreter, population_size)
