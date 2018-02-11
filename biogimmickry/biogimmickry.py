@@ -142,7 +142,7 @@ def generate_random_command(alphabet):
 
 # --------------- SELECTION ----------------------------------------------------
 def select(population, population_size):
-  top_percentile_divisor = 5 # tweak
+  top_percentile_divisor = 3 # tweak (changed from 5)
   top_percentile_len = population_size // top_percentile_divisor
 
   top_percentile = population[:top_percentile_len]
@@ -185,8 +185,8 @@ def adjust_fitness(population, max_fitness):
 
 # --------------- CREATE SIMPLE PROGRAM ----------------------------------------
 def create_simple_program(target, interpreter):
-  max_iterations = 2000 # tweak
-  population_size = 100 # tweak
+  max_iterations = 1000 # tweak (changed from 2000)
+  population_size = 250 # tweak (changed from 100)
 
   population = initialize_population(target, interpreter, population_size)
 
@@ -216,7 +216,7 @@ def create_simple_program(target, interpreter):
 def initialize_population(target, interpreter, population_size):
   population = []
   min_prog_len = calculate_min_prog_length(target)
-  prog_length_multiplier = 3
+  prog_length_multiplier = 3 # tweak
   max_prog_len = min_prog_len * prog_length_multiplier + 1 # tweak
 
   for i in range(population_size):
