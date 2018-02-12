@@ -22,14 +22,6 @@ def main():
   print_result(result)
 
 
-def get_first_player():
-  player = random.randint(0, 1)
-  if player == 0:
-    return True
-
-  return False
-
-
 def print_game_intro(is_human_turn):
   print()
   print("Welcome to tic-tac-toe!")
@@ -58,17 +50,34 @@ def print_result(result):
     print("It was a tie game")
 
 
-def human_turn(board):
+def print_human_prompt():
   print()
   pos = int(input("Where would you like to move?"))
+  return pos
+
+
+def print_ai_move(position):
+  print()
+  print("AI chooses spot:", position)
+
+
+def get_first_player():
+  player = random.randint(0, 1)
+  if player == 0:
+    return True
+
+  return False
+
+
+def human_turn(board):
+  pos = print_human_prompt()
   board[pos - 1] = 'O'
 
 
 def ai_turn(board):
   for i in range(len(board)):
     if isinstance(board[i], int):
-      print()
-      print("AI chooses spot:", i + 1)
+      print_ai_move(i + 1)
       board[i] = 'X'
       return
 
