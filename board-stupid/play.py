@@ -5,14 +5,21 @@ def main():
   board = [1, 2, 3, 4, 5, 6, 7, 8, 9]
   width = 3
   result = None
+  human_player = 'O'
 
+  num_players = prompt_num_players()
   is_human_turn = get_first_player()
   print_game_intro(is_human_turn)
 
   while result == None:
     print_board(board, width)
-    if is_human_turn:
-      human_turn(board)
+    if is_human_turn or num_players == 2:
+      if num_players == 2:
+        if human_player == 'O':
+          human_player = 'X'
+        else:
+          human_player = 'O'
+      human_turn(board, human_player)
     else:
       ai_turn(board)
     is_human_turn = not is_human_turn
@@ -20,6 +27,11 @@ def main():
 
   print_board(board, width)
   print_result(result)
+
+
+def prompt_num_players():
+  num_players = int(input("1 or 2  players? \n"))
+  return num_players
 
 
 def print_game_intro(is_human_turn):
@@ -52,7 +64,7 @@ def print_result(result):
 
 def print_human_prompt():
   print()
-  pos = int(input("Where would you like to move?"))
+  pos = int(input("Where would you like to move? \n"))
   return pos
 
 
@@ -69,9 +81,9 @@ def get_first_player():
   return False
 
 
-def human_turn(board):
+def human_turn(board, human_player):
   pos = print_human_prompt()
-  board[pos - 1] = 'O'
+  board[pos - 1] = human_player
 
 
 def ai_turn(board):
