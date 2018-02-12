@@ -1,3 +1,4 @@
+import copy
 import random
 
 
@@ -5,7 +6,8 @@ def main():
   board = [1, 2, 3, 4, 5, 6, 7, 8, 9]
   width = 3
   result = None
-  human_player = 'O'
+  human_player = -1
+  ai_player = 1
 
   num_players = prompt_num_players()
   is_human_turn = get_first_player()
@@ -15,15 +17,16 @@ def main():
     print_board(board, width)
     if is_human_turn or num_players == 2:
       if num_players == 2:
-        if human_player == 'O':
-          human_player = 'X'
+        if human_player == -1:
+          human_player = 1
         else:
-          human_player = 'O'
+          human_player = -1
       human_turn(board, human_player)
+      result = get_utility(board, width, human_player)
     else:
       ai_turn(board)
+      result = get_utility(board, width, ai_player)
     is_human_turn = not is_human_turn
-    result = get_utility(board, width, 'X')
 
   print_board(board, width)
   print_result(result)
@@ -83,7 +86,8 @@ def get_first_player():
 
 def human_turn(board, human_player):
   pos = print_human_prompt()
-  board[pos - 1] = human_player
+  human_player_piece = get_player_piece(human_player)
+  board[pos - 1] = human_player_piece
 
 
 def ai_turn(board):
@@ -113,14 +117,48 @@ def is_terminal(result, board, width, player, num_blanks, blank_indicies):
 
 
 def is_tie_board(board, width, player, num_blanks, blank_indicies):
-  if num_blanks > 1:
+  current_player = get_player_piece(player)
+  next_player = get_player_piece(player, True)
+
+  if num_blanks > 2:
     return False
 
-  board[blank_indicies[0]] = player
-  if get_result(board, width):
-    return False
+  boards = get_possible_boards(board, player)
+  if num_blanks == 2:
+    opponent_boards = get_possible_boards(board, next_player)
+
+  total_boards = boards + opponent_boards
+  return check_no_winner(total_boards, width)
+
+
+def check_no_winner(boards, width):
+  for board in boards:
+    if get_result(board, width):
+      return False
 
   return True
+
+
+def get_possible_boards(board, player):
+  possible_boards = []
+  blank_indicies = find_blanks(board)
+
+  for blank in blank_indicies:
+    next_board = copy.deepcopy(board)
+    next_board[blank] = player
+    possible_boards.append(next_board)
+
+  return possible_boards
+
+
+def get_player_piece(player, invert = False):
+  piece = ''
+  piece = '0' if player == -1 else 'X'
+
+  if invert:
+    piece = 'X' if piece == 'O' else 'O'
+
+  return piece
 
 
 def get_result(board, width):
