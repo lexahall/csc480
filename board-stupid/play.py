@@ -16,7 +16,7 @@ def main():
     else:
       ai_turn(board)
     is_human_turn = not is_human_turn
-    result = get_game_result(board, width)
+    result = get_utility(board, width, 'X')
 
   print_board(board, width)
   print_result(result)
@@ -73,17 +73,36 @@ def ai_turn(board):
       return
 
 
-def get_game_result(board, width):
-  utility = get_utility(board, width)
-  if utility:
-    return utility
-  elif check_full(board):
-    return 0
+def get_utility(board, width, player):
+  result = get_result(board, width)
+  blank_indicies = find_blanks(board)
+  num_blanks = len(blank_indicies)
+  if is_terminal(result, board, width, player, num_blanks, blank_indicies):
+    return result
 
   return None
 
 
-def get_utility(board, width):
+def is_terminal(result, board, width, player, num_blanks, blank_indicies):
+  return (
+    result
+    or num_blanks == 0
+    or is_tie_board(board, width, player, num_blanks, blank_indicies)
+  )
+
+
+def is_tie_board(board, width, player, num_blanks, blank_indicies):
+  if num_blanks > 1:
+    return False
+
+  board[blank_indicies[0]] = player
+  if get_result(board, width):
+    return False
+
+  return True
+
+
+def get_result(board, width):
   lanes = build_lanes(width)
   for lane in lanes:
     if board[lane[0]] == board[lane[1]] == board[lane[2]]:
@@ -102,12 +121,13 @@ def build_lanes(width):
          ]
 
 
-def check_full(board):
+def find_blanks(board):
+  blank_indicies = []
   for i in range(len(board)):
     if isinstance(board[i], int):
-      return False
+      blank_indicies.append(i)
 
-  return True
+  return blank_indicies
 
 
 if __name__ == "__main__":
