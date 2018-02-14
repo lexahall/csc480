@@ -153,7 +153,7 @@ def get_possible_boards(board, player):
 
 def get_player_piece(player, invert = False):
   piece = ''
-  piece = '0' if player == -1 else 'X'
+  piece = 'O' if player == -1 else 'X'
 
   if invert:
     piece = 'X' if piece == 'O' else 'O'
@@ -162,10 +162,11 @@ def get_player_piece(player, invert = False):
 
 
 def get_result(board, width):
-  lanes = build_lanes(width)
+  lanes = build_lanes(board, width)
+
   for lane in lanes:
-    if board[lane[0]] == board[lane[1]] == board[lane[2]]:
-      if board[lane[0]] == 'O':
+    if lane[0] == lane[1] == lane[2]:
+      if lane[0] == 'O':
         return -1
       else:
         return 1
@@ -173,11 +174,13 @@ def get_result(board, width):
   return 0
 
 
-def build_lanes(width):
-  return [[0, 1, 2], [3, 4, 5], [6, 7, 8],
-          [0, 3, 6], [1, 4, 7], [2, 5, 8],
-          [0, 4, 8], [2, 4, 6]
-         ]
+def build_lanes(board, width):
+  rows = [board[i:i + width] for i in range(0, width * width, width)]
+  cols = [board[i::width] for i in range(0, width)]
+  diag1 = [[board[width * i + i] for i in range(0, width)]]
+  diag2 = [[board[width * i + width - i - 1] for i in range(0, width)]]
+  lanes = rows + cols + diag1 + diag2
+  return lanes
 
 
 def find_blanks(board):
