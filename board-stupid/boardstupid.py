@@ -14,21 +14,18 @@ import copy
 # returns: appropriate utility backtracked up from on of the leaves of the game
 # tree
 def search_tree(board, width, player):
-  # if the current game state is a terminal state:
+
   if is_terminal(board, width, player):
-  #   return a utility based on the player that moved
     return get_utility(board, width, player)
 
-  best_value = - sys.maxint
+  best_value = - float("inf")
+
   possible_boards = get_possible_boards(board, player)
-  # for each valid move in the current game state:
+
   for next_board in possible_boards:
-#   call search_tree with the move applied to the game state
     u = -search_tree(next_board, width, -player)
-#   negate the utility returned by search_tree
     best_value = max(best_value, u)
-#   if this utility is the current best, store it
-# return the best utility
+
   return best_value
 
 
