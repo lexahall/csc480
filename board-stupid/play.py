@@ -116,18 +116,39 @@ def is_terminal(result, board, width, player, num_blanks, blank_indicies):
   )
 
 
-def is_tie_board(board, width, player, num_blanks, blank_indicies):
   current_player = get_player_piece(player)
   next_player = get_player_piece(player, True)
+  total_boards = []
 
   if num_blanks > 2:
     return False
 
-  boards = get_possible_boards(board, player)
-  if num_blanks == 2:
-    opponent_boards = get_possible_boards(board, next_player)
 
-  total_boards = boards + opponent_boards
+  return check_no_winner(total_boards, width)
+def is_tie_board(board, width, player, num_blanks, blank_indicies):
+  current_player = get_player_piece(player)
+  next_player = get_player_piece(player, True)
+  total_boards = []
+
+  if num_blanks > 2:
+    return False
+
+  if num_blanks ==1:
+    possible_board = copy.deepcopy(board)
+    possible_board[blank_indicies[0]] = current_player
+    total_boards.append(possible_board)
+
+  if num_blanks == 2:
+    possible_board_one = copy.deepcopy(board)
+    possible_board_one[blank_indicies[0]] = current_player
+    possible_board_one[blank_indicies[1]] = next_player
+    total_boards.append(possible_board_one)
+
+    possible_board_two = copy.deepcopy(board)
+    possible_board_two[blank_indicies[0]] = next_player
+    possible_board_two[blank_indicies[1]] = current_player
+    total_boards.append(possible_board_two)
+
   return check_no_winner(total_boards, width)
 
 
