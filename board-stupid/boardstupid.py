@@ -4,6 +4,8 @@
 # Assignment:  Board Stupid
 # Term:        Winter 2018
 
+import copy
+
 # ------------------- REQUIRED FUNCTIONS --------------------------------------
 
 
@@ -11,79 +13,73 @@
 #   1: MAX, -1: MIN
 # returns: appropriate utility backtracked up from on of the leaves of the game
 # tree
- def search_tree(board, width, player = -1):
+def search_tree(board, width, player):
   # if the current game state is a terminal state:
+  if is_terminal(board, width, player):
   #   return a utility based on the player that moved
+    return get_utility(board, width, player)
+
+  best_value = - sys.maxint
+  possible_boards = get_possible_boards(board, player)
   # for each valid move in the current game state:
-  #   call search_tree with the move applied to the game state
-  #   negate the utility returned by search_tree
-  #   if this utility is the current best, store it
-  # return the best utility
-  return
+  for next_board in possible_boards:
+#   call search_tree with the move applied to the game state
+    u = -search_tree(next_board, width, -player)
+#   negate the utility returned by search_tree
+    best_value = max(best_value, u)
+#   if this utility is the current best, store it
+# return the best utility
+  return best_value
 
 
-
-
-# determines whether the game is a terminal state
-#   if so, determines which player wins
-# return:
-#   0 for tie
-#   1 for MAX wins
-#   -1 for MIN wins
-#   None otherwise
 def get_utility(board, width, player):
-  result = get_result(board, width)
-  blank_indicies = find_blanks(board)
-  num_blanks = len(blank_indicies)
-  if is_terminal(result, board, width, player, num_blanks, blank_indicies):
+  if is_terminal(board, width, player):
+    result = get_result(board, width)
     return result
 
   return None
 
 
-
 # ------------------- HELPER FUNCTIONS ----------------------------------------
 
-def is_terminal(result, board, width, player, num_blanks, blank_indicies):
-  return (
-    result
-    or num_blanks == 0
-    or is_tie_board(board, width, player, num_blanks, blank_indicies)
-  )
+def is_terminal(board, width, player):
+  result = get_result(board, width)
 
-  current_player = get_player_piece(player)
-  next_player = get_player_piece(player, True)
+  if result:
+    return True
+
+  return is_tie_board(board, width, player)
+
+
+def is_tie_board(board, width, player):
+  current_player_piece = get_player_piece(player)
+  next_player_piece = get_player_piece(-player)
+
+  blank_indicies = find_blanks(board)
+  num_blanks = len(blank_indicies)
+
+  if num_blanks == 0:
+    return True
+
   total_boards = []
 
   if num_blanks > 2:
     return False
 
-
-  return check_no_winner(total_boards, width)
-
-
-def is_tie_board(board, width, player, num_blanks, blank_indicies):
-  current_player = get_player_piece(player)
-  next_player = get_player_piece(player, True)
-  total_boards = []
-
-  if num_blanks > 2:
-    return False
-
-  if num_blanks ==1:
+  if num_blanks == 1:
     possible_board = copy.deepcopy(board)
-    possible_board[blank_indicies[0]] = current_player
+    possible_board[blank_indicies[0]] = current_player_piece
     total_boards.append(possible_board)
 
   if num_blanks == 2:
     possible_board_one = copy.deepcopy(board)
-    possible_board_one[blank_indicies[0]] = current_player
-    possible_board_one[blank_indicies[1]] = next_player
+    possible_board_one[blank_indicies[0]] = current_player_piece
+    possible_board_one[blank_indicies[1]] = next_player_piece
     total_boards.append(possible_board_one)
 
     possible_board_two = copy.deepcopy(board)
-    possible_board_two[blank_indicies[0]] = next_player
-    possible_board_two[blank_indicies[1]] = current_player
+    possible_board_two[blank_indicies[0]] = next_player_piece
+    possible_board_two[blank_indicies[1]] = current_player_piece
     total_boards.append(possible_board_two)
 
   return check_no_winner(total_boards, width)
@@ -97,28 +93,6 @@ def check_no_winner(boards, width):
   return True
 
 
-def get_possible_boards(board, player):
-  possible_boards = []
-  blank_indicies = find_blanks(board)
-
-  for blank in blank_indicies:
-    next_board = copy.deepcopy(board)
-    next_board[blank] = player
-    possible_boards.append(next_board)
-
-  return possible_boards
-
-
-def get_player_piece(player, invert = False):
-  piece = ''
-  piece = 'O' if player == -1 else 'X'
-
-  if invert:
-    piece = 'X' if piece == 'O' else 'O'
-
-  return piece
-
-
 def get_result(board, width):
   lanes = build_lanes(board, width)
 
@@ -130,6 +104,26 @@ def get_result(board, width):
         return 1
 
   return 0
+
+
+def get_possible_boards(board, player):
+  possible_boards = []
+  blank_indicies = find_blanks(board)
+  player_piece = get_player_piece(player)
+
+  for blank in blank_indicies:
+    next_board = copy.deepcopy(board)
+    next_board[blank] = player_piece
+    possible_boards.append(next_board)
+
+  return possible_boards
+
+
+def get_player_piece(player):
+  piece = ''
+  piece = 'O' if player == -1 else 'X'
+
+  return piece
 
 
 def build_lanes(board, width):
