@@ -8,15 +8,9 @@ import copy
 
 # ------------------- REQUIRED FUNCTIONS --------------------------------------
 
-
-# player: player making the move
-#   1: MAX, -1: MIN
-# returns: appropriate utility backtracked up from on of the leaves of the game
-# tree
 def search_tree(board, width, player):
-
   if is_terminal(board, width, player):
-    return get_utility(board, width, player)
+    return player * get_utility(board, width, player)
 
   best_value = - float("inf")
 
@@ -25,6 +19,8 @@ def search_tree(board, width, player):
   for next_board in possible_boards:
     u = -search_tree(next_board, width, -player)
     best_value = max(best_value, u)
+    if best_value == 1:
+      break
 
   return best_value
 
@@ -64,17 +60,17 @@ def is_tie_board(board, width, player):
     return False
 
   if num_blanks == 1:
-    possible_board = copy.deepcopy(board)
+    possible_board = copy.copy(board)
     possible_board[blank_indicies[0]] = current_player_piece
     total_boards.append(possible_board)
 
   if num_blanks == 2:
-    possible_board_one = copy.deepcopy(board)
+    possible_board_one = copy.copy(board)
     possible_board_one[blank_indicies[0]] = current_player_piece
     possible_board_one[blank_indicies[1]] = next_player_piece
     total_boards.append(possible_board_one)
 
-    possible_board_two = copy.deepcopy(board)
+    possible_board_two = copy.copy(board)
     possible_board_two[blank_indicies[0]] = next_player_piece
     possible_board_two[blank_indicies[1]] = current_player_piece
     total_boards.append(possible_board_two)
@@ -109,7 +105,7 @@ def get_possible_boards(board, player):
   player_piece = get_player_piece(player)
 
   for blank in blank_indicies:
-    next_board = copy.deepcopy(board)
+    next_board = copy.copy(board)
     next_board[blank] = player_piece
     possible_boards.append(next_board)
 
