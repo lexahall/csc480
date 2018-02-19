@@ -121,14 +121,16 @@ def check_no_winner(boards, width):
 
 
 def get_result(board, width):
-  lanes = build_lanes(board, width)
+  lanes = build_board_lanes(board, width)
 
   for lane in lanes:
-    if lane[0] == lane[1] == lane[2]:
-      if lane[0] == 'O':
-        return -1
-      else:
-        return 1
+    lane_set = set()
+    for i in lane:
+      lane_set.add(i)
+    if lane_set == set('O'):
+      return -1
+    elif lane_set == set('X'):
+      return 1
 
   return 0
 
@@ -153,7 +155,7 @@ def get_player_piece(player):
   return piece
 
 
-def build_lanes(board, width):
+def build_board_lanes(board, width):
   rows = [board[i:i + width] for i in range(0, width * width, width)]
   cols = [board[i::width] for i in range(0, width)]
   diag1 = [[board[width * i + i] for i in range(0, width)]]
