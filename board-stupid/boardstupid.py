@@ -33,7 +33,41 @@ def get_utility(board, width, player):
   return None
 
 
+def make_transpositions(board, width):
+  transpositions = []
+  rows = [board[i:i + width] for i in range(0, width * width, width)]
+  cols = [board[i::width] for i in range(0, width)]
+
+  board_one = []
+
+  for i in range(width):
+    for j in range(width - 1, -1, -1):
+      board_one.append(rows[i][j])
+
+  transpositions.append(board)
+  transpositions.append(board_one)
+
+  rotate_board(width, width - 1, -1, -1, rows, transpositions)
+  rotate_board(width, 0, width, 1, cols, transpositions)
+  rotate_board(width, width - 1, -1, -1, cols, transpositions)
+
+  return transpositions
+
+
 # ------------------- HELPER FUNCTIONS ----------------------------------------
+
+def rotate_board(width, start, stop, step, lists, transpositions):
+  board_one = []
+  board_two = []
+
+  for i in range(start, stop, step):
+    board_one += lists[i]
+    for j in range(width - 1, -1, -1):
+      board_two.append(lists[i][j])
+
+  transpositions.append(board_one)
+  transpositions.append(board_two)
+
 
 def is_terminal(board, width, player):
   result = get_result(board, width)
