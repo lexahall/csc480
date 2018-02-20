@@ -27,7 +27,8 @@ def search_tree(board, width, player):
 
 def get_utility(board, width, player):
   if is_terminal(board, width, player):
-    result = get_result(board, width)
+    lanes = build_board_lanes(board, width)
+    result = get_result(board, width, lanes)
     return result
 
   return None
@@ -105,7 +106,8 @@ def rotate_board(width, start, stop, step, lists, transpositions):
 
 
 def is_terminal(board, width, player):
-  result = get_result(board, width)
+  lanes = build_board_lanes(board, width)
+  result = get_result(board, width, lanes)
 
   if result:
     return True
@@ -149,15 +151,14 @@ def is_tie_board(board, width, player):
 
 def check_no_winner(boards, width):
   for board in boards:
-    if get_result(board, width):
+    lanes = build_board_lanes(board, width)
+    if get_result(board, width, lanes):
       return False
 
   return True
 
 
-def get_result(board, width):
-  lanes = build_board_lanes(board, width)
-
+def get_result(board, width, lanes):
   for lane in lanes:
     lane_set = set()
     for i in lane:
