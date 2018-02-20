@@ -33,10 +33,6 @@ def get_utility(board, width, player):
 
   return None
 
-# TODO: refactor make_transpositions
-# New approach: make rotate board function -> call three times,
-#               make flip board function
-#               flip board, then rotate three more times
 
 def make_transpositions(board, width):
   if type(board[0]) is list:
