@@ -25,6 +25,15 @@ def search_tree(board, width, player):
   return best_value
 
 
+def get_utility_3d(board, width, player):
+  flat_boards = build_boards(board, width)
+
+  for flat_board in flat_boards:
+    get_utility(flat_board, width, player)
+
+  return None
+
+
 def get_utility(board, width, player):
   if is_terminal(board, width, player):
     lanes = build_board_lanes(board, width)
@@ -187,11 +196,46 @@ def get_player_piece(player):
   return piece
 
 
+def build_boards(board, width):
+  flat_boards = copy.copy(board)
+
+  for i in range(0, width * width, width):
+    row_board = []
+    for flat_board in board:
+      row = flat_board[i:i + width]
+      row_board.append(row)
+    row_board = [item for sublist in row_board for item in sublist]
+    flat_boards.append(row_board)
+
+  for i in range(width):
+    col_board = []
+    for flat_board in board:
+      col = flat_board[i::width]
+      col_board.append(col)
+    col_board = [item for sublist in col_board for item in sublist]
+    flat_boards.append(col_board)
+
+  diag1_board = []
+  diag2_board = []
+  for flat_board in board:
+    diag1_board.append([flat_board[width * i + i] for i in range(width)])
+    diag2_board.append([
+      flat_board[width * i + width - i - 1] for i in range(width)
+    ])
+
+  diag1_board = [item for sublist in diag1_board for item in sublist]
+  diag2_board = [item for sublist in diag2_board for item in sublist]
+  flat_boards.append(diag1_board)
+  flat_boards.append(diag2_board)
+
+  return flat_boards
+
+
 def build_board_lanes(board, width):
   rows = [board[i:i + width] for i in range(0, width * width, width)]
-  cols = [board[i::width] for i in range(0, width)]
-  diag1 = [[board[width * i + i] for i in range(0, width)]]
-  diag2 = [[board[width * i + width - i - 1] for i in range(0, width)]]
+  cols = [board[i::width] for i in range(width)]
+  diag1 = [[board[width * i + i] for i in range(width)]]
+  diag2 = [[board[width * i + width - i - 1] for i in range(width)]]
   lanes = rows + cols + diag1 + diag2
   return lanes
 
