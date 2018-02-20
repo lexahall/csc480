@@ -69,6 +69,31 @@ def rotate_board(width, start, stop, step, lists, transpositions):
   transpositions.append(board_two)
 
 
+def make_transpositions_3d(boards, width):
+  all_transpositions = []
+  transpositions_3d = []
+
+  for board in boards:
+    transpositions = make_transpositions(board, width)
+    all_transpositions.append(transpositions)
+
+  num_transpositions = 8
+  for j in range(num_transpositions):
+    transpostion_3d = []
+    for i in range(width):
+      transpostion_3d.append(all_transpositions[i][j])
+    transpositions_3d.append(transpostion_3d)
+
+  reverse_transpositions = []
+  for transposition in transpositions_3d:
+    reverse_transpositions.append(transposition[::-1])
+
+  for reverse in reverse_transpositions:
+    transpositions_3d.append(reverse)
+
+  return transpositions_3d
+
+
 def is_terminal(board, width, player):
   result = get_result(board, width)
 
