@@ -38,13 +38,13 @@ def get_utility(board, width, player):
 #               make flip board function
 #               flip board, then rotate three more times
 
-def make_transpositions(boards, width):
-  if type(boards[0]) is list:
+def make_transpositions(board, width):
+  if type(board[0]) is list:
     all_transpositions = []
     transpositions_3d = []
 
-    for board in boards:
-      transpositions = make_individual_transpositions(board, width)
+    for flat_board in board:
+      transpositions = make_individual_transpositions(flat_board, width)
       all_transpositions.append(transpositions)
 
     num_transpositions = 8
@@ -64,7 +64,7 @@ def make_transpositions(boards, width):
     return transpositions_3d
 
   else:
-    transpositions = make_individual_transpositions(boards, width)
+    transpositions = make_individual_transpositions(board, width)
 
   return transpositions
 
