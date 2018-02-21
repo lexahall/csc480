@@ -5,6 +5,65 @@
 # Term:        Winter 2018
 
 import copy
+import math
+import random
+
+
+class Node(object):
+  def __init__(self, player, wins, losses, total, visits, board):
+    self.player = player
+    self.wins = wins
+    self.total = total
+    self.visits = visits
+    self.board = board
+
+
+#TODO: keep track of how many times visited, insert node with correct win/loss
+# record.. switch depending on player when pulling out of tree
+def search_tree_mc(board, width, player, table):
+  if is_terminal(board, width, player):
+    utility = get_utility_3d(board, width, player)
+    print('utility', utility)
+    return utility
+
+  best_ucb = - float("inf")
+  best_node = None
+  possible_boards = get_possible_boards(board, width, player)
+  for current_board in possible_boards:
+    node = get_node_from_table(current_board, table, width)
+    if not node:
+      node = Node(player, 0, 0, 1, 1, current_board) #TODO: assign total and visits properly?
+    ucb = get_upper_confidence_bound(node)
+    if ucb > best_ucb:
+      best_ucb = ucb
+      best_node = node
+    elif ucb == best_ucb:
+      # for ties, randomly select a node
+      rand_selection = random.randint(0, 2)
+      if rand_selection == 0:
+        best_node = node
+
+    print(ucb)
+    print(best_ucb)
+
+  utility = search_tree_mc(best_node.board, width, -player, table)
+  node = get_node_from_table(best_node.board, table, width)
+  if not node:
+    node = Node(player, 0, 0, 1, 1, best_node.board) #TODO: assign total and visits properly?
+  update_node_in_table(board, table, node, width)
+  return utility
+
+
+def get_node_from_table(board, table, width):
+  transpositions = make_transpositions(board, width)
+  minimum_hash = get_minimum_hash(transpositions)
+  return table.get(minimum_hash)
+
+
+def update_node_in_table(board, table, node, width):
+  transpositions = make_transpositions(board, width)
+  minimum_hash = get_minimum_hash(transpositions)
+  table.update({minimum_hash : node})
 
 
 def search_tree(board, width, player):
@@ -22,6 +81,21 @@ def search_tree(board, width, player):
       break
 
   return best_value
+
+
+def get_minimum_hash(transpositions):
+  minimum_hash = float("inf")
+
+  for transposition in transpositions:
+    current_hash = hash(transposition)
+    minimum_hash = min(current_hash, minimum_hash)
+
+  return minimum_hash
+
+def get_upper_confidence_bound(node):
+  return ((node.wins + 1) / (node.visits + 1) +
+    math.sqrt((2 *math.log1p(node.total) + 1 ) / (node.visits + 1))
+  )
 
 
 def get_utility_3d(board, width, player):
@@ -111,8 +185,24 @@ def rotate_board(width, start, stop, step, lists, transpositions):
 
 
 def is_terminal(board, width, player):
+  if type(board[0]) is list:
+    for flat_board in board:
+      is_terminal = is_terminal_2d(flat_board, width, player)
+      if not is_terminal:
+        return False
+  else:
+    return is_terminal_2d(board, width, player)
+
+  return True
+
+
+def is_terminal_2d(board, width, player):
   lanes = build_board_lanes(board, width)
-  result = get_result(board, width, lanes)
+  if type(board[0]) is list:
+    for flat_board in board:
+      result = get_result(board, width, lanes)
+  else:
+    result = get_result(board, width, lanes)
 
   if result:
     return True
