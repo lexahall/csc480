@@ -6,7 +6,6 @@
 
 import copy
 
-# ------------------- REQUIRED FUNCTIONS --------------------------------------
 
 def search_tree(board, width, player):
   if is_terminal(board, width, player):
@@ -29,7 +28,10 @@ def get_utility_3d(board, width, player):
   flat_boards = build_boards(board, width)
 
   for flat_board in flat_boards:
-    get_utility(flat_board, width, player)
+    if is_terminal(flat_board, width, player):
+      lanes = build_board_lanes(flat_board, width)
+      result = get_result(flat_board, width, lanes)
+      return result
 
   return None
 
@@ -94,8 +96,6 @@ def make_individual_transpositions(board, width):
 
   return transpositions
 
-
-# ------------------- HELPER FUNCTIONS ----------------------------------------
 
 def rotate_board(width, start, stop, step, lists, transpositions):
   board_one = []
