@@ -59,7 +59,7 @@ def make_transpositions(board, width):
       transpostion_3d = []
       for i in range(width):
         transpostion_3d.append(all_transpositions[i][j])
-      transpositions_3d.append(transpostion_3d)
+      transpositions_3d.append(tuple(transpostion_3d))
 
     reverse_transpositions = []
     for transposition in transpositions_3d:
@@ -68,7 +68,7 @@ def make_transpositions(board, width):
     for reverse in reverse_transpositions:
       transpositions_3d.append(reverse)
 
-    return transpositions_3d
+    return tuple(transpositions_3d)
 
   else:
     transpositions = make_individual_transpositions(board, width)
@@ -87,14 +87,14 @@ def make_individual_transpositions(board, width):
     for j in range(width - 1, -1, -1):
       board_one.append(rows[i][j])
 
-  transpositions.append(board)
-  transpositions.append(board_one)
+  transpositions.append(tuple(board))
+  transpositions.append(tuple(board_one))
 
   rotate_board(width, width - 1, -1, -1, rows, transpositions)
   rotate_board(width, 0, width, 1, cols, transpositions)
   rotate_board(width, width - 1, -1, -1, cols, transpositions)
 
-  return transpositions
+  return tuple(transpositions)
 
 
 def rotate_board(width, start, stop, step, lists, transpositions):
@@ -106,8 +106,8 @@ def rotate_board(width, start, stop, step, lists, transpositions):
     for j in range(width - 1, -1, -1):
       board_two.append(lists[i][j])
 
-  transpositions.append(board_one)
-  transpositions.append(board_two)
+  transpositions.append(tuple(board_one))
+  transpositions.append(tuple(board_two))
 
 
 def is_terminal(board, width, player):
