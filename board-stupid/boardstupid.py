@@ -13,7 +13,7 @@ def search_tree(board, width, player):
 
   best_value = - float("inf")
 
-  possible_boards = get_possible_boards(board, player)
+  possible_boards = get_possible_boards(board, width, player)
 
   for next_board in possible_boards:
     u = -search_tree(next_board, width, -player)
@@ -124,7 +124,7 @@ def is_tie_board(board, width, player):
   current_player_piece = get_player_piece(player)
   next_player_piece = get_player_piece(-player)
 
-  blank_indicies = find_blanks(board)
+  blank_indicies = find_blanks(board, width)
   num_blanks = len(blank_indicies)
 
   if num_blanks == 0:
@@ -176,14 +176,19 @@ def get_result(board, width, lanes):
   return 0
 
 
-def get_possible_boards(board, player):
+def get_possible_boards(board, width, player):
   possible_boards = []
-  blank_indicies = find_blanks(board)
+  blank_indicies = find_blanks(board, width)
   player_piece = get_player_piece(player)
 
   for blank in blank_indicies:
-    next_board = copy.copy(board)
-    next_board[blank] = player_piece
+    if type(blank) is list:
+      next_board = copy.deepcopy(board)
+      next_board[blank[0]][blank[1]] = player_piece
+    else:
+      next_board = copy.copy(board)
+      next_board[blank] = player_piece
+
     possible_boards.append(next_board)
 
   return possible_boards
@@ -240,10 +245,19 @@ def build_board_lanes(board, width):
   return lanes
 
 
-def find_blanks(board):
+def find_blanks(board, width):
   blank_indicies = []
-  for i in range(len(board)):
-    if isinstance(board[i], int):
-      blank_indicies.append(i)
+
+  if type(board[0]) is list:
+    board_length = len(board[0])
+    for i in range(width):
+      for j in range(board_length):
+        if isinstance(board[i][j], int):
+          blank_indicies.append([i, j])
+  else:
+    board_length = len(board)
+    for i in range(board_length):
+      if isinstance(board[i], int):
+        blank_indicies.append(i)
 
   return blank_indicies
