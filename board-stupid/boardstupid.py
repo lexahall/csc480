@@ -10,7 +10,7 @@ import random
 
 
 class Node(object):
-  def __init__(self, player, wins, losses, total, visits):
+  def __init__(self, player, wins = 0, losses = 0, total = 0, visits = 0):
     self.player = player
     self.wins = wins
     self.losses = losses
@@ -26,6 +26,33 @@ class State(object):
     self.node = node
 
 
+def find_best_move(board, width, player, table, best_move):
+  table = {}
+  blank_indicies = find_blanks(board, width)
+  player_piece = get_player_piece(player)
+  best_utility_sum = - float("inf")
+  num_iterations = 3
+
+  random_blank = blank_indicies[random.randint(0, len(blank_indicies))]
+  best_move[0] = random_blank[0]
+  best_move[1] = random_blank[1]
+
+  if len(blank_indicies) < ((width * width * width) - width * 2):
+    for blank in blank_indicies:
+      utility_sum = 0
+      next_board = copy.deepcopy(board)
+      next_board[blank[0]][blank[1]] = player_piece
+
+      for i in range(num_iterations):
+        utility_sum += search_tree_mc(next_board, width, player, table)
+        print(table)
+
+      if utility_sum > best_utility_sum:
+        best_utility_sum = utility_sum
+        best_move[0] = blank[0]
+        best_move[1] = blank[1]
+
+
 def search_tree_mc(board, width, player, table):
   if is_terminal(board, width, player):
     utility = get_utility_3d(board, width, player)
@@ -33,27 +60,38 @@ def search_tree_mc(board, width, player, table):
 
   best_state = State(- float("inf"), None, 0, None)
   possible_boards = get_possible_boards(board, width, player)
+  possible_nodes = []
+  total_visits = 0
+
   for current_board in possible_boards:
     board_hash = get_board_hash(current_board, width)
     node = table.get(board_hash)
     if not node:
-      node = Node(player, 0, 0, 1, counter)
+      node = Node(player)
+    total_visits += node.total
+    possible_nodes.append(node)
+
+  for node in possible_nodes:
     ucb = get_upper_confidence_bound(node)
     current_state = State(ucb, current_board, board_hash, node)
     determine_best_state(current_state, best_state)
 
   utility = search_tree_mc(best_state.board, width, -player, table)
+  add_state_to_table(utility, player, best_state, table, total_visits)
+  return utility
+
+
+def add_state_to_table(utility, player, state, table, total_visits):
   win, loss, tie = get_win_loss_tie(utility, player)
-  node = table.get(best_state.hash_val)
+  node = table.get(state.hash_val)
   if node:
     node.wins += win
     node.losses += loss
     node.visits += 1
-    node.total = counter
+    node.total = total_visits
   else:
-    node = Node(player, win, loss, 1, counter)
-  table.update({best_state.hash_val : node})
-  return utility
+    node = Node(player, win, loss, 1, total_visits)
+  table.update({state.hash_val : node})
 
 
 def determine_best_state(current_state, best_state):
