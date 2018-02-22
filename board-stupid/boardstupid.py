@@ -10,60 +10,88 @@ import random
 
 
 class Node(object):
-  def __init__(self, player, wins, losses, total, visits, board):
+  def __init__(self, player, wins, losses, total, visits):
     self.player = player
     self.wins = wins
+    self.losses = losses
     self.total = total
     self.visits = visits
+
+
+class State(object):
+  def __init__(self, ucb, board, hash_val, node):
+    self.ucb = ucb
     self.board = board
+    self.hash_val = hash_val
+    self.node = node
 
 
-#TODO: keep track of how many times visited, insert node with correct win/loss
-# record.. switch depending on player when pulling out of tree
 def search_tree_mc(board, width, player, table):
   if is_terminal(board, width, player):
     utility = get_utility_3d(board, width, player)
-    print('utility', utility)
     return utility
 
-  best_ucb = - float("inf")
-  best_node = None
+  best_state = State(- float("inf"), None, 0, None)
   possible_boards = get_possible_boards(board, width, player)
   for current_board in possible_boards:
-    node = get_node_from_table(current_board, table, width)
+    board_hash = get_board_hash(current_board, width)
+    node = table.get(board_hash)
     if not node:
-      node = Node(player, 0, 0, 1, 1, current_board) #TODO: assign total and visits properly?
+      node = Node(player, 0, 0, 1, counter)
     ucb = get_upper_confidence_bound(node)
-    if ucb > best_ucb:
-      best_ucb = ucb
-      best_node = node
-    elif ucb == best_ucb:
-      # for ties, randomly select a node
-      rand_selection = random.randint(0, 2)
-      if rand_selection == 0:
-        best_node = node
+    current_state = State(ucb, current_board, board_hash, node)
+    determine_best_state(current_state, best_state)
 
-    print(ucb)
-    print(best_ucb)
-
-  utility = search_tree_mc(best_node.board, width, -player, table)
-  node = get_node_from_table(best_node.board, table, width)
-  if not node:
-    node = Node(player, 0, 0, 1, 1, best_node.board) #TODO: assign total and visits properly?
-  update_node_in_table(board, table, node, width)
+  utility = search_tree_mc(best_state.board, width, -player, table)
+  win, loss, tie = get_win_loss_tie(utility, player)
+  node = table.get(best_state.hash_val)
+  if node:
+    node.wins += win
+    node.losses += loss
+    node.visits += 1
+    node.total = counter
+  else:
+    node = Node(player, win, loss, 1, counter)
+  table.update({best_state.hash_val : node})
   return utility
 
 
-def get_node_from_table(board, table, width):
-  transpositions = make_transpositions(board, width)
-  minimum_hash = get_minimum_hash(transpositions)
-  return table.get(minimum_hash)
+def determine_best_state(current_state, best_state):
+  if current_state.ucb > best_state.ucb:
+    best_state.ucb = current_state.ucb
+    best_state.hash_val = current_state.hash_val
+    best_state.board = current_state.board
+    best_state.node = current_state.node
+  elif current_state.ucb == best_state.ucb:
+    # for ties, randomly select a node
+    rand_selection = random.randint(0, 2)
+    if rand_selection == 0:
+      best_state.hash_val = current_state.hash_val
+      best_state.board = current_state.board
+      best_state.node = current_state.node
 
 
-def update_node_in_table(board, table, node, width):
+def get_win_loss_tie(utility, player):
+  win = loss = tie = 0
+  if utility == player:
+    win = 1
+  elif utility == 0:
+    tie = 1
+  else:
+    loss = 1
+
+  return win, tie, loss
+
+
+def get_board_hash(board, width):
   transpositions = make_transpositions(board, width)
-  minimum_hash = get_minimum_hash(transpositions)
-  table.update({minimum_hash : node})
+  minimum_hash = float("inf")
+
+  for transposition in transpositions:
+    current_hash = hash(transposition)
+    minimum_hash = min(current_hash, minimum_hash)
+
+  return minimum_hash
 
 
 def search_tree(board, width, player):
@@ -83,18 +111,9 @@ def search_tree(board, width, player):
   return best_value
 
 
-def get_minimum_hash(transpositions):
-  minimum_hash = float("inf")
-
-  for transposition in transpositions:
-    current_hash = hash(transposition)
-    minimum_hash = min(current_hash, minimum_hash)
-
-  return minimum_hash
-
 def get_upper_confidence_bound(node):
   return ((node.wins + 1) / (node.visits + 1) +
-    math.sqrt((2 *math.log1p(node.total) + 1 ) / (node.visits + 1))
+    math.sqrt((2 * math.log1p(node.total) + 1 ) / (node.visits + 1))
   )
 
 
