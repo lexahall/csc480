@@ -56,18 +56,20 @@ def pyagent_process(stench, breeze, glitter, bump, scream, compass):
 
     immediate_action = check_immediate_action(glitter, bump, compass, actions)
     if immediate_action:
+        print("immediate_action:", immediate_action)
         return immediate_action
 
     update_KB(stench, breeze, scream)
 
     #action = determine_best_action(actions)
     move = pick_best_move(["TURNLEFT", "TURNRIGHT", "GOFORWARD"])
+    print("MOVE SELECTED:", move)
 
     return actions[move]
 
 
 def check_immediate_action(glitter, bump, compass, actions):
-    compass_threshold = 3
+    compass_threshold = -1
 
     handle_compass(compass)
 
@@ -207,12 +209,14 @@ def pick_best_move(moves):
     for move in moves:
         cell = get_cell_from_move(move)
         value = evaluate_cell(cell)
-        if value > max_value:
+        print("MOVE:", move)
+        print("VALUE:", value)
+        if value >= max_value:
             max_value = value
             best_move = move
 
     if max_value < 0:
-        return "WAIT"
+        return "TURNLEFT"
 
     return best_move
 
