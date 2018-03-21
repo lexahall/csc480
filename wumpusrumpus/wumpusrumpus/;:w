@@ -22,8 +22,7 @@ def pyagent_initialize():
         "all x.(Explored(x) -> -Wumpus(x) & -Pit(x))",
         "all x.(Explored(x) -> StaticSafe(x))",
         "all x.(-Pit(x) & -Wumpus(x) -> StaticSafe(x))",
-        # Kartik's
-        "all x. Stench(x) -> exists y. Wumpus(y) & Adjacent(x, y)"
+        # "all x. Stench(x) -> exists y. Wumpus(y) & Adjacent(x, y)"
         # "all x. exists y.(Breeze(x) & Adjacent(x, y) -> Pit(y))",
         # "all x. exists y.(Stench(x) & Adjacent(x, y) -> Wumpus(y))",
         # "all x.(StaticSafe(x) -> -Wumpus(x) & -Pit(x))",
@@ -53,74 +52,86 @@ def pyagent_process(stench, breeze, glitter, bump, scream, compass):
                "CLIMB": 5, "WAIT": 6, "COMPASS": 7}
 
     KB.num_moves += 1
+    print("AGENT HAS GOLD?:", KB.agent_gold)
 
     immediate_action = check_immediate_action(glitter, bump, compass, actions)
     if immediate_action:
-        print("immediate_action:", immediate_action)
+        print("IMMEDIATE ACTION:", immediate_action)
         return immediate_action
 
     update_KB(stench, breeze, scream)
 
-    #action = determine_best_action(actions)
     move = pick_best_move(["TURNLEFT", "TURNRIGHT", "GOFORWARD"])
     print("MOVE SELECTED:", move)
+    if move == "TURNLEFT" or move == "TURNRIGHT":
+      update_agent_direction(move)
+    else:
+      update_agent_loc()
 
     return actions[move]
 
 
 def check_immediate_action(glitter, bump, compass, actions):
-    compass_threshold = -1
+    compass_threshold = 6
 
     handle_compass(compass)
 
     if KB.num_moves <= compass_threshold:
         return actions["COMPASS"]
 
-    update_wupmus_loc()
+    #update_wupmus_loc()
 
     if bump:
         return handle_bump(actions)
 
+    if KB.agent_gold == KB.num_wumpuses and KB.agent_loc == (1, 1):
+      return actions["CLIMB"]
+
     print("AGENT_LOCATION:", KB.agent_loc)
     print("AGENT_DIR:", KB.agent_dir)
     print("WUMPUS LOCATIONS:", KB.wumpus_locations)
-    #print("SENTENCES:")
-    #for sentence in KB.sentences:
-    #    print(sentence)
+   # print("SENTENCES:")
+   # for sentence in KB.sentences:
+   #     print(sentence)
 
     KB.tell("Explored({}_{})".format(KB.agent_loc[0], KB.agent_loc[1]))
     tell_adjacent_cells()
 
     if glitter == 1:
         # there is gold, pick it up
+        KB.agent_gold += 1
         return actions["GRAB"]
 
 
 def update_KB(stench, breeze, scream):
     if stench == 1:
         # there is a wumpus in one of the adjacent cells
-        KB.tell("Stench({})".format(KB.agent_loc[0], KB.agent_loc[1]))
+        KB.tell("Stench({}_{})".format(KB.agent_loc[0], KB.agent_loc[1]))
     else:
         # there are no wumpuses in the adjacent cells
-        KB.tell("all x.(Adjacent({}, x) -> -Wumpus(x))".format(
+        KB.tell("all x.(Adjacent({}_{}, x) -> -Wumpus(x))".format(
             KB.agent_loc[0],
             KB.agent_loc[1]
         ))
 
     if breeze == 1:
         # there is a pit in one of the adjacent cells
-        KB.tell("Breeze({})".format(KB.agent_loc[0], KB.agent_loc[1]))
+        KB.tell("Breeze({}_{})".format(KB.agent_loc[0], KB.agent_loc[1]))
     else:
         # there is not a pit in any of the adjacent cells
-        KB.tell("all x.(Adjacent({}, x) -> -Pit(x))".format(
+        KB.tell("all x.(Adjacent({}_{}, x) -> -Pit(x))".format(
             KB.agent_loc[0],
             KB.agent_loc[1]
         ))
 
     if scream == 1:
-       # Dynamic wumpuses are changing direction
-       KB.wumpus_direction *= -1
+       print()
+       print("----------------------------------------------------------------")
+       print("SCREAM")
+       print()
 
+       # Dynamic wumpuses are changing direction
+       KB.wumpus_rotation *= -1
 
 
 def handle_compass(compass):
@@ -129,47 +140,72 @@ def handle_compass(compass):
                          for sub in compass[2:-2].split("),(")]
 
         KB.num_wumpuses = len(compass_array)
+        print("NUM WUMPUSES:", KB.num_wumpuses)
+        print("DELTA LOCATIONS:", KB.delta_locations)
+        print("WUMPUS LOCATIONS:", KB.wumpus_locations)
 
         new_wumpus_locations = []
 
-        for i in range(len(compass_array)):
-            loc = compass_array[i]
+        index = 0
+        for loc in compass_array:
             if loc != (0, 0):
                 new_wumpus_locations.append(loc)
                 if len(KB.wumpus_locations) > 0:
-                    delta_x = loc[0] - KB.wumpus_locations[i][0]
-                    delta_y = loc[1] - KB.wumpus_locations[i][1]
-                    if len(KB.delta_locations) == 0:
-                        KB.delta_locations.append((delta_x, delta_y))
-                    else:
-                        KB.delta_locations[i].append((delta_x, delta_y))
+                    print(index)
+                    delta_x = loc[0] - KB.wumpus_locations[index][0]
+                    delta_y = loc[1] - KB.wumpus_locations[index][1]
+                    KB.delta_locations[index].append((delta_x, delta_y))
+                index += 1
 
+        KB.num_dynamic_wumpuses = len(new_wumpus_locations)
         KB.wumpus_locations = new_wumpus_locations
 
-        if len(KB.delta_locations) > 0:
+        if len(KB.delta_locations) == 0:
+            print("setting delta")
+            print("num dynamic wumpuses:", KB.num_dynamic_wumpuses)
+            KB.delta_locations = [[] for i in range(KB.num_dynamic_wumpuses)]
+
+        elif len(KB.delta_locations[0]) >= 5:
             set_wumpus_indecies()
 
 
-def set_wumpus_indecies():
-    wumpus_moves = [
-        (1, 0), (1, 0),
-        (0, -1), (0, -1),
-        (-1, 0), (-1, 0),
-        (0, 1), (0, 1)
-    ]
+def find_subsequence_original(subseq, seq):
+    while subseq[0] in seq:
+        index = seq.index(subseq[0])
+        for i in range()
+        if subseq == seq[index:index + len(subseq)]:
+            return index + len(subseq)
+        else:
+            seq = seq[index + 1:]
+    else:
+        return -1
 
+
+def find_subsequence(subseq, seq):
+    while subseq[0] in seq:
+        index = seq.index(subseq[0])
+        for i in range(index, index + len(subseq))
+        if subseq == seq[index:index + len(subseq)]:
+            return index + len(subseq)
+        else:
+            seq = seq[index + 1:]
+    else:
+        return -1
+
+
+def set_wumpus_indecies():
     for deltas in KB.delta_locations:
         print(deltas)
         if deltas[0] == deltas[1]:
             delta = deltas[0]
-            is_second_occurance = false
+            is_second_occurance = False
         else:
             delta = deltas[1]
-            is_second_occurance = true
+            is_second_occurance = True
 
-        for i in range(len(wumpus_moves)):
-            if delta == wumpus_moves[i]:
-                print(delta, wumpus_moves[i])
+        for i in range(len(KB.wumpus_moves)):
+            if delta == KB.wumpus_moves[i]:
+                print(delta, KB.wumpus_moves[i])
                 index = i
                 if is_second_occurance:
                     index += 1
@@ -179,15 +215,17 @@ def set_wumpus_indecies():
 
 
 def update_wupmus_loc():
-    wumpus_moves = [(1, 0), (0, -1), (-1, 0), (0, 1)]
     print("WUMPUS INDECIES:", KB.wumpus_indecies)
     print("WUMPUS LOCATIONS:", KB.wumpus_locations)
 
     for i in range(len(KB.wumpus_locations)):
-        wumpus_index = (KB.wumpus_indecies[i] + KB.wumpus_direction) % 4
+        wumpus_index = (
+            (KB.wumpus_indecies[i] + KB.wumpus_rotation) %
+            len(KB.wumpus_moves)
+        )
         KB.wumpus_indecies[i] = wumpus_index
         print("WUMPUS INDEX:", wumpus_index)
-        wumpus_move = wumpus_moves[wumpus_index]
+        wumpus_move = KB.wumpus_moves[wumpus_index]
         new_x = KB.wumpus_locations[i][0] + wumpus_move[0]
         new_y = KB.wumpus_locations[i][1] + wumpus_move[1]
         KB.wumpus_locations[i] = (new_x, new_y)
@@ -218,6 +256,12 @@ def pick_best_move(moves):
     if max_value < 0:
         return "TURNLEFT"
 
+    if max_value == 1:
+        if KB.agent_loc == (1, 1):
+          return "GOFORWARD"
+        else:
+          return "TURNLEFT"
+
     return best_move
 
 
@@ -237,12 +281,26 @@ def get_cell_from_move(move):
 
 
 def evaluate_cell(cell):
+    #print()
+    death_penalty = 100
     cell_value = 1
 
+    if KB.agent_gold == KB.num_wumpuses:
+        explored_penalty = -1
+        if is_towards_home(cell):
+          #print("towards home, +1")
+          cell_value += 1
+    else:
+        explored_penalty = 0.04
+
     is_safe = KB.ask("StaticSafe({}_{})".format(cell[0], cell[1]))
+
     is_explored = KB.ask("Explored({}_{})".format(cell[0], cell[1]))
-    is_wumpus = KB.ask("Wumpus({}_{})".format(cell[0], cell[1]))
+
     is_pit = KB.ask("Pit({}_{})".format(cell[0], cell[1]))
+
+    is_wumpus = check_for_wumpus(cell)
+
     is_wall = KB.ask("Wall({}_{}, {}_{})".format(
         KB.agent_loc[0],
         KB.agent_loc[1],
@@ -251,33 +309,53 @@ def evaluate_cell(cell):
     ))
 
     if is_wumpus or is_pit or is_wall:
-        cell_value -= 100
+        cell_value -= death_penalty
 
     elif is_safe:
+        #print("towards safe, +1")
         cell_value += 1
 
         if is_explored:
-            cell_value -= 0.04
+            cell_value -= explored_penalty
+
+    #print("Current cell:", cell)
+    #print("is_explored:", is_explored)
+    #print("is_wumpus:", is_wumpus)
+    #print("is_pit:", is_pit)
+    #print("is_not_wumpus:", is_not_wumpus)
+    #print("is_not_pit:", is_not_pit)
+    #print("is_safe:", is_safe)
+    #print("is_wall:", is_wall)
 
     return cell_value
 
 
-def determine_best_action(actions):
-    next_cell = get_next_cell(1, KB.agent_dir)
-    if KB.ask("StaticSafe({}_{})".format(next_cell[0], next_cell[1])):
-        update_agent_loc()
-        return actions["GOFORWARD"]
-    else:
-        random_chance = random.random()
-        if random_chance < 0.4:
-            update_agent_direction("TURNLEFT")
-            return actions["TURNLEFT"]
-        elif 0.4 < random_chance < 0.8:
-            update_agent_direction("TURNRIGHT")
-            return actions["TURNRIGHT"]
-        else:
-            update_agent_loc()
-            return actions["GOFORWARD"]
+def check_for_wumpus(cell):
+    is_wumpus = KB.ask("Wumpus({}_{})".format(cell[0], cell[1]))
+    if is_wumpus:
+      return is_wumpus
+
+    for loc in KB.wumpus_locations:
+        if loc == cell:
+            return True
+
+    return False
+
+
+
+def is_towards_home(cell):
+    home = (1, 1)
+    old_manhattan_dist = get_manhattan_dist(KB.agent_loc, home)
+    new_manhattan_dist = get_manhattan_dist(cell, home)
+
+    if new_manhattan_dist < old_manhattan_dist:
+        return True
+
+    return False
+
+
+def get_manhattan_dist(cell, home):
+    return abs(cell[0] - home[0]) + abs(cell[1] - home[1])
 
 
 def get_next_cell(direction, agent_dir):
@@ -296,15 +374,15 @@ def get_next_cell(direction, agent_dir):
 
 def update_agent_loc(direction = 1):
     next_cell = get_next_cell(direction, KB.agent_dir)
-    KB.agent_loc = [next_cell[0], next_cell[1]]
+    KB.agent_loc = (next_cell[0], next_cell[1])
 
 
 def update_agent_direction(action):
     dir_map = {
-        'N': {'TURNLEFT' : 'W', 'TURNRIGHT' : 'E'},
-        'E': {'TURNLEFT' : 'N', 'TURNRIGHT' : 'S'},
-        'S': {'TURNLEFT' : 'E', 'TURNRIGHT' : 'W'},
-        'W': {'TURNLEFT' : 'S', 'TURNRIGHT' : 'N'},
+        'N': {'TURNLEFT' : 'W', 'TURNRIGHT' : 'E', 'GOFORWARD' : 'N'},
+        'E': {'TURNLEFT' : 'N', 'TURNRIGHT' : 'S', 'GOFORWARD' : 'E'},
+        'S': {'TURNLEFT' : 'E', 'TURNRIGHT' : 'W', 'GOFORWARD' : 'S'},
+        'W': {'TURNLEFT' : 'S', 'TURNRIGHT' : 'N', 'GOFORWARD' : 'W'},
     }
 
     KB.agent_dir = dir_map[KB.agent_dir][action]
@@ -388,14 +466,28 @@ class KnowledgeBase(object):
     def __init__(self, axioms = []):
         self.sentences = [logic.Expression.fromstring(a) for a in axioms]
         self.used_sentences = set()
-        self.agent_loc = [1, 1]
+        self.agent_gold = 0
+        self.agent_loc = (1, 1)
         self.agent_dir = "E"
         self.num_moves = 0
         self.num_wumpuses = 0
-        self.wumpus_direction = 1
+        self.num_dynamic_wumpuses = 0
+        self.wumpus_rotation = 1
         self.delta_locations = []
         self.wumpus_indecies = []
         self.wumpus_locations = []
+
+        self.wumpus_moves = [
+            (0, 0),
+            (1, 0), (1, 0),
+            (0, 0),
+            (0, -1), (0, -1),
+            (0, 0),
+            (-1, 0), (-1, 0),
+            (0, 0),
+            (0, 1), (0, 1)
+        ]
+
 
     def tell(self, sentence):
         if sentence not in self.used_sentences:
@@ -404,10 +496,6 @@ class KnowledgeBase(object):
 
     def ask(self, sentence):
         sentence = logic.Expression.fromstring(sentence)
-        if "ANSWER" in str(sentence):
-            prover = inference.ResolutionProverCommand(None, self.sentences)
-            prover.add_assumptions([sentence])
-            return [list(e.constants())[0].name for e in prover.find_answers()
-                    if type(e) is logic.ConstantExpression]
-        else:
-            return inference.ResolutionProver().prove(sentence, self.sentences)
+        prover = inference.Prover9()
+        prover.config_prover9(".")
+        return prover.prove(sentence, self.sentences)

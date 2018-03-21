@@ -293,6 +293,78 @@ def run_get_adjacent_cells_test(cell, expected):
   output_test_results(expected, actual, end_time - start_time)
 
 
+def test_find_subsequence():
+  print()
+  print("--------------- FIND SUBSEQUENCE  ----------------")
+
+  print("TEST 1:")
+  subseq = (1, 2, 3)
+  seq = (0, 1, 2, 3, 4, 5)
+  expected = 4
+  run_find_subsequence_test(subseq, seq, expected)
+
+  print("TEST 2:")
+  subseq = ((1, 2), (3, 4))
+  seq = ((0, 1), (1, 2), (3, 4), (5, 6))
+  expected = 3
+  run_find_subsequence_test(subseq, seq, expected)
+
+
+  print("TEST 3:")
+  subseq = [(0, 0), (0, 1), (0, 1), (0, 0), (1, 0)]
+  seq = [
+      (0, 0),
+      (1, 0), (1, 0),
+      (0, 0),
+      (0, -1), (0, -1),
+      (0, 0),
+      (-1, 0), (-1, 0),
+      (0, 0),
+      (0, 1), (0, 1)
+  ]
+  expected = 2
+  run_find_subsequence_test(subseq, seq, expected)
+
+  print("TEST 4:")
+  subseq = [(0, 0), (-1, 0), (-1, 0), (0, 0), (0, -1)]
+  seq = [
+      (0, 0),
+      (1, 0), (1, 0),
+      (0, 0),
+      (0, -1), (0, -1),
+      (0, 0),
+      (-1, 0), (-1, 0),
+      (0, 0),
+      (0, 1), (0, 1)
+  ]
+  expected = 4
+  run_find_subsequence_test(subseq, seq, expected)
+
+  print("TEST 5:")
+  subseq = [(0, 0), (1, 0), (1, 0), (0, 0), (0, 1)]
+  seq = [
+      (0, 0),
+      (1, 0), (1, 0),
+      (0, 0),
+      (0, -1), (0, -1),
+      (0, 0),
+      (-1, 0), (-1, 0),
+      (0, 0),
+      (0, 1), (0, 1)
+  ]
+  expected = 10
+  run_find_subsequence_test(subseq, seq, expected)
+
+
+
+def run_find_subsequence_test(subseq, seq, expected):
+  agent.pyagent_initialize()
+  start_time = round(time.clock(), 2)
+  actual = agent.find_subsequence(subseq, seq)
+  end_time = round(time.clock(), 2)
+  output_test_results(expected, actual, end_time - start_time)
+
+
 def test_update_agent_direction():
   print()
   print("--------------- GET ADJACENT CELLS  ----------------")
@@ -415,11 +487,12 @@ def output_test_results(expected, actual, execution_time, equality = True):
 
 
 def main():
-    test_string_to_coordinate()
-    test_coordinate_to_string()
+    # test_string_to_coordinate()
+    # test_coordinate_to_string()
     # test_get_adjacent_cells()
     # test_update_agent_direction()
-    test_KB()
+    # test_KB()
+    test_find_subsequence()
 
 
 if __name__ == "__main__":

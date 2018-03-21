@@ -1,0 +1,25 @@
+size 6
+wumpus_rotation 1 clockwise
+wumpus_rotation 2 clockwise
+wumpus_rotation 3 clockwise
+wumpus_rotation 4 clockwise
+
++-----+-----+-----+-----+-----+-----+
+|                                   |
+|                                   |
++     +     +     +     +     +     +
+|        G                 G        |
+|        2                 3        |
++     +     +     +     +     +     +
+|      W                 W          |
+|      2                 3          |
++     +     +     +     +     +     +
+|        G                 G        |
+|        1                 4        |
++     +     +     +     +     +     +
+|      W                 W          |
+|      1                 4          |
++     +     +     +     +     +     +
+|                                   |
+|                                   |
++-----+-----+-----+-----+-----+-----+

@@ -1,0 +1,38 @@
+size 6
+wumpus_count 4
+wumpus 1 2 2
+wumpus 2 2 4
+wumpus 4 5 2
+wumpus 3 5 4
+wumpus_rotation 1 1
+wumpus_rotation 2 1
+wumpus_rotation 3 1
+wumpus_rotation 4 1
+gold 1 2 3
+gold 2 2 5
+gold 4 5 3
+gold 3 5 5
+wall 3 1 1
+wall 2 1 1
+wall 2 1 2
+wall 2 1 3
+wall 2 1 4
+wall 2 1 5
+wall 1 1 6
+wall 2 1 6
+wall 3 2 1
+wall 1 2 6
+wall 3 3 1
+wall 1 3 6
+wall 3 4 1
+wall 1 4 6
+wall 3 5 1
+wall 1 5 6
+wall 0 6 1
+wall 3 6 1
+wall 0 6 2
+wall 0 6 3
+wall 0 6 4
+wall 0 6 5
+wall 1 6 6
+wall 0 6 6

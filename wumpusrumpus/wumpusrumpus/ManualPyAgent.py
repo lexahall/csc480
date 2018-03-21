@@ -56,10 +56,8 @@ def pyagent_process(stench, breeze, glitter, bump, scream, compass):
     else:
         percept_str += "Scream=False,"
 
-    print("COMPASS:", compass)
-
     percept_str += "Compass={}".format(compass)
-
+    
     print("pyagent_process: " + percept_str)
 
     while True:
